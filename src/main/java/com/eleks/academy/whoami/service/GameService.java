@@ -30,4 +30,6 @@ public interface GameService {
     void answerQuestion(String id, String player, String answer);
 
     Optional<GameDetails> leaveGame(String player, String id);
+
+    void guessingCharacter(String id, String player, String message);
 }

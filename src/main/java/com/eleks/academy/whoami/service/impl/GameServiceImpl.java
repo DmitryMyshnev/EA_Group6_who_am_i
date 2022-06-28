@@ -151,6 +151,18 @@ public class GameServiceImpl implements GameService {
             throw new GameException("The game " + id + " not found");
     }
 
+    @Override
+    public void guessingCharacter(String id, String player, String message) {
+        var currentGame = this.findGame(id);
+        var currentPlayer = findPlayer(id, player);
+        currentGame
+                .filter(game -> game.getStatus().equals(GameState.PROCESSING_QUESTION))
+                .or(() -> {
+                    throw new GameException(NOT_AVAILABLE);
+                })
+                .ifPresent(game -> game.guessCharacter(currentPlayer, message));
+    }
+
     private Optional<SynchronousGame> findGame(String id) {
         return this.gameRepository.findById(id)
                 .or(() -> {
