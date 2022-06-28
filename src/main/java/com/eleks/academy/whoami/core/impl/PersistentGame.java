@@ -168,6 +168,10 @@ public class PersistentGame implements SynchronousGame {
     @Override
     public void answerQuestion(SynchronousPlayer player, PlayersAnswer answer) {
         turnLock.lock();
+        var currentTurn = gameData.currentTurnPlayer();
+        if (currentTurn.isGuessing() && answer.equals(PlayersAnswer.NOT_SURE)) {
+            throw new GameException(NOT_AVAILABLE);
+        }
         var playerId = player.getId();
         try {
             hasCorrectState(player, ANSWERING)

@@ -78,6 +78,15 @@ public class GameDataImpl implements GameData {
     }
 
     @Override
+    public SynchronousPlayer currentTurnPlayer() {
+        return playersWithStates.stream()
+                .filter(player-> player.getState().equals(ASKING))
+                .findFirst()
+                .map(PlayersWithState::getPlayer)
+                .orElseThrow(()->new GameException("Player not found"));
+    }
+
+    @Override
     public List<SynchronousPlayer> allPlayers() {
         return this.players;
     }

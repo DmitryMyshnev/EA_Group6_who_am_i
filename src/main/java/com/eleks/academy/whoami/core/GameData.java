@@ -55,4 +55,5 @@ public interface GameData {
 
     void removeAllPlayers();
 
+    SynchronousPlayer currentTurnPlayer();
 }
