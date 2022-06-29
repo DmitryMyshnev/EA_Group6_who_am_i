@@ -46,8 +46,9 @@ public class GameDataImpl implements GameData {
     }
 
     @Override
-    public void savePlayersAnswer(String playerName, PlayersAnswer answer) {
+    public PlayersAnswer savePlayersAnswer(String playerName, PlayersAnswer answer) {
         this.playersAnswerQueue.add(new AnsweringPlayer(playerName, answer));
+        return answer;
     }
 
     @Override

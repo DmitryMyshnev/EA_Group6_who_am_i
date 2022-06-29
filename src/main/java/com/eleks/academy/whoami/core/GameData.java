@@ -14,7 +14,7 @@ public interface GameData {
 
     void addPlayerQuestionInHistory(String playerName, String question);
 
-    void savePlayersAnswer(String playerName, PlayersAnswer answer);
+    PlayersAnswer savePlayersAnswer(String playerName, PlayersAnswer answer);
 
     void addPlayerAnswersInHistory();
 
