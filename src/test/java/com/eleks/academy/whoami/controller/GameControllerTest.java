@@ -1,13 +1,11 @@
 package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.core.GameState;
-import com.eleks.academy.whoami.core.History;
 import com.eleks.academy.whoami.core.SynchronousGame;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.core.impl.PersistentPlayer;
 import com.eleks.academy.whoami.model.request.PlayersAnswer;
-import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.PlayerState;
 import com.eleks.academy.whoami.repository.GameRepository;
 import org.junit.jupiter.api.Assertions;
@@ -311,6 +309,53 @@ class GameControllerTest {
                 .andExpect(jsonPath("$.history.entries[0].answers[1].answer").value("NO"))
                 .andExpect(jsonPath("$.history.entries[0].answers[2].answer").value("NO"));
     }
+
+
+    @Test
+    void updateHistoryAfterNextQuestion() throws Exception {
+        var game = initGame();
+        var players = game.getPlayersInGame();
+        game.start();
+        game.askQuestion(players.get(0), "Am I man?");
+        game.answerQuestion(players.get(1), PlayersAnswer.YES);
+        game.answerQuestion(players.get(2), PlayersAnswer.YES);
+        game.answerQuestion(players.get(3), PlayersAnswer.YES);
+        game.askQuestion(players.get(0), "Am I exist?");
+        game.answerQuestion(players.get(1), PlayersAnswer.NO);
+        game.answerQuestion(players.get(2), PlayersAnswer.NO);
+        game.answerQuestion(players.get(3), PlayersAnswer.NOT_SURE);
+
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId())
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.history.entries[1].id").value(2))
+                .andExpect(jsonPath("$.history.entries[1].playerName").value("Pol"))
+                .andExpect(jsonPath("$.history.entries[1].playerQuestion").value("Am I exist?"))
+                .andExpect(jsonPath("$.history.entries[1].answers[0].answer").value("NO"))
+                .andExpect(jsonPath("$.history.entries[1].answers[1].answer").value("NO"))
+                .andExpect(jsonPath("$.history.entries[1].answers[2].answer").value("NOT_SURE"));
+    }
+
+    @Test
+    void showInHistoryOnlyQuestionWhenNotAllPlayersAnswered() throws Exception {
+        var game = initGame();
+        var players = game.getPlayersInGame();
+        game.start();
+        game.askQuestion(players.get(0), "Am I man?");
+
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId())
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.history.entries[0].id").value(1))
+                .andExpect(jsonPath("$.history.entries[0].playerName").value("Pol"))
+                .andExpect(jsonPath("$.history.entries[0].playerQuestion").value("Am I man?"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.history.entries[0].answers[0]").doesNotHaveJsonPath());
+    }
+
 
     @Test
     void wrongGameId_leaveGame() throws Exception {
