@@ -384,6 +384,21 @@ class GameControllerTest {
                 .andExpect(jsonPath("$.playersInGame").value(0));
     }
 
+    @Test
+    void guessingCharacter() throws Exception {
+        var game = initGame();
+        game.start();
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.post("/games/" + game.getId() + "/guess")
+                                .header("X-Player", "Pol")
+                                .content("""
+                                        {
+                                          "message": "Am i Batman?"
+                                        }""")
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
     private SynchronousGame initGame() {
         var game = new PersistentGame("Pol", 4, uuidGenerator);
         gameRepository.save(game);
