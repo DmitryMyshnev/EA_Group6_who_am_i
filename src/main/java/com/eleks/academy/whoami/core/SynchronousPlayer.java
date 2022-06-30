@@ -12,4 +12,6 @@ public interface SynchronousPlayer extends Player {
 
     void setAnswer(String answer, boolean guessing);
 
+    void markAsLeft();
+
 }

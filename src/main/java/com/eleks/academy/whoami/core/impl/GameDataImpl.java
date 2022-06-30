@@ -163,8 +163,7 @@ public class GameDataImpl implements GameData {
     @Override
     public void markAnsweringStateExceptCurrentTurnPlayer(String currentTurnPlayerId) {
         updatePlayerState(currentTurnPlayerId, ASKING);
-        this.playersWithStates.stream()
-                .map(PlayersWithState::getPlayer)
+        this.players.stream()
                 .map(Player::getId)
                 .filter(id -> !id.equals(currentTurnPlayerId))
                 .forEach(id -> updatePlayerState(id, ANSWERING));
