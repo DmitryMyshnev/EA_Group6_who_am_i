@@ -3,6 +3,7 @@ package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.model.request.CharacterSuggestion;
+import com.eleks.academy.whoami.model.request.GuessMessage;
 import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
@@ -14,8 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import javax.validation.Valid;
 import java.util.List;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,7 +33,7 @@ import static com.eleks.academy.whoami.utils.StringUtils.Headers.PLAYER;
 @Validated
 public class GameController {
 
-  private final GameService gameService;
+    private final GameService gameService;
 
     @GetMapping("/quick-game")
     public ResponseEntity<GameDetails> quickGame(@RequestHeader(PLAYER) String player) {
@@ -102,12 +105,12 @@ public class GameController {
         this.gameService.askQuestion(id, player, message.getMessage());
     }
 
-  @GetMapping("/{id}/leave-game")
-  public ResponseEntity<GameDetails> leaveGame(@RequestHeader(PLAYER) String player, @PathVariable("id") String id) {
-    return this.gameService.leaveGame(player, id)
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.badRequest().build());
-  }
+    @GetMapping("/{id}/leave-game")
+    public ResponseEntity<GameDetails> leaveGame(@RequestHeader(PLAYER) String player, @PathVariable("id") String id) {
+        return this.gameService.leaveGame(player, id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest().build());
+    }
 
     @PostMapping("/{id}/answer")
     @ResponseStatus(HttpStatus.OK)
@@ -115,5 +118,13 @@ public class GameController {
                                @RequestHeader(PLAYER) String player,
                                @RequestBody Message message) {
         this.gameService.answerQuestion(id, player, message.getMessage());
-    }    
+    }
+
+    @PostMapping("/{id}/guess")
+    @ResponseStatus(HttpStatus.OK)
+    public void guessingCharacter(@PathVariable("id") String id,
+                                  @RequestHeader(PLAYER) String player,
+                                  @RequestBody GuessMessage message) {
+        this.gameService.guessingCharacter(id, player, message.getMessage());
+    }
 }

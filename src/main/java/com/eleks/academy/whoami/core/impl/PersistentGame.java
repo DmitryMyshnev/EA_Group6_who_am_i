@@ -32,6 +32,7 @@ public class PersistentGame implements SynchronousGame {
     private final GameData gameData;
     public static final long SUGGESTING_CHARACTER_TIMEOUT = 120;
     public static final long WAITING_QUESTION_TIMEOUT = 60;
+    public static final long WAITING_GUESS_TIMEOUT = 60;
     public static final long WAITING_ANSWER_TIMEOUT = 20;
     private static final String TIME_OVER = "Time is over";
     private static final String NOT_AVAILABLE = "Not available";
@@ -166,6 +167,17 @@ public class PersistentGame implements SynchronousGame {
     }
 
     @Override
+    public void guessCharacter(SynchronousPlayer player, String message) {
+        hasCorrectState(player, ASKING)
+                .filter(timer -> isTimeOut(gameData.getInitialTime(), WAITING_GUESS_TIMEOUT))
+                .or(() -> {
+                    gameData.updatePlayerState(id, LOSER);
+                    throw new GameException(TIME_OVER);
+                })
+                .ifPresent(synchronousPlayer -> synchronousPlayer.setAnswer(message, true));
+    }
+
+    @Override
     public void answerQuestion(SynchronousPlayer player, PlayersAnswer answer) {
         turnLock.lock();
         var currentTurn = gameData.currentTurnPlayer();
@@ -180,7 +192,7 @@ public class PersistentGame implements SynchronousGame {
                         var counter = gameData.getInactivityCounter(playerId);
                         if (counter == 3) {
                             gameData.updatePlayerState(id, LOSER);
-                            return Optional.empty();
+                            throw new GameException(TIME_OVER);
                         }
                         gameData.incrementInactivityCounter(playerId);
                         return Optional.of(player);

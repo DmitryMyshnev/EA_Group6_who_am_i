@@ -34,4 +34,5 @@ public interface SynchronousGame  {
 
     SynchronousGame leaveGame(String player);
 
+    void guessCharacter(SynchronousPlayer player, String message);
 }
