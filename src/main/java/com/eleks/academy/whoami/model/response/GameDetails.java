@@ -20,6 +20,8 @@ public class GameDetails {
 
     private GameState status;
 
+    private String currentTurn;
+
     private List<PlayersWithState> players;
 
     private History history;
@@ -29,6 +31,7 @@ public class GameDetails {
                 .id(game.getId())
                 .status(game.getStatus())
                 .players(game.getPlayersInGameWithState())
+                .currentTurn(game.getCurrentTurn())
                 .history(game.getHistory())
                 .build();
     }

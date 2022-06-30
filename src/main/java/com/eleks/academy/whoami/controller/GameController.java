@@ -7,6 +7,7 @@ import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.model.request.NewGameRequest;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.TurnDetail;
 import com.eleks.academy.whoami.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
@@ -14,8 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import javax.validation.Valid;
 import java.util.List;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,11 +33,11 @@ import static com.eleks.academy.whoami.utils.StringUtils.Headers.PLAYER;
 @Validated
 public class GameController {
 
-  private final GameService gameService;
+    private final GameService gameService;
 
     @GetMapping("/quick-game")
     public ResponseEntity<GameDetails> quickGame(@RequestHeader(PLAYER) String player) {
-        return this.gameService.quickGame(player)
+        return this.gameService.quickGame(player, 4)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
@@ -42,7 +45,7 @@ public class GameController {
     @PostMapping
     public ResponseEntity<GameDetails> createGame(@RequestHeader(PLAYER) String player,
                                                   @RequestBody NewGameRequest gameRequest) {
-        return this.gameService.createGame(player, gameRequest.getMaxPlayers())
+        return this.gameService.quickGame(player, gameRequest.getMaxPlayers())
                 .map(gameDetails -> ResponseEntity.status(HttpStatus.CREATED).body(gameDetails))
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
@@ -65,7 +68,7 @@ public class GameController {
     public void suggestCharacter(@PathVariable("id") String id,
                                  @RequestHeader(PLAYER) String player,
                                  @Valid @RequestBody CharacterSuggestion suggestion) {
-        this.gameService.suggestCharacter(id, player, suggestion.getCharacter());
+        this.gameService.suggestCharacter(id, player, suggestion);
     }
 
     @GetMapping("/{id}")
@@ -102,12 +105,12 @@ public class GameController {
         this.gameService.askQuestion(id, player, message.getMessage());
     }
 
-  @GetMapping("/{id}/leave-game")
-  public ResponseEntity<GameDetails> leaveGame(@RequestHeader(PLAYER) String player, @PathVariable("id") String id) {
-    return this.gameService.leaveGame(player, id)
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.badRequest().build());
-  }
+    @GetMapping("/{id}/leave-game")
+    public ResponseEntity<GameDetails> leaveGame(@RequestHeader(PLAYER) String player, @PathVariable("id") String id) {
+        return this.gameService.leaveGame(player, id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest().build());
+    }
 
     @PostMapping("/{id}/answer")
     @ResponseStatus(HttpStatus.OK)
@@ -115,5 +118,14 @@ public class GameController {
                                @RequestHeader(PLAYER) String player,
                                @RequestBody Message message) {
         this.gameService.answerQuestion(id, player, message.getMessage());
-    }    
+    }
+
+    @GetMapping("/{id}/turn")
+    public ResponseEntity<TurnDetail> currentTurn(@PathVariable("id") String gameId,
+                                                  @RequestHeader(PLAYER) String playerId)
+    {
+        return gameService.getCurrentTurn(gameId, playerId)
+                .map(ResponseEntity::ok)
+                .orElseGet(()->ResponseEntity.badRequest().build());
+    }
 }

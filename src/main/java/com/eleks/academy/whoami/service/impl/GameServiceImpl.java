@@ -6,9 +6,11 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.core.impl.PersistentPlayer;
+import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.PlayersAnswer;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
+import com.eleks.academy.whoami.model.response.TurnDetail;
 import com.eleks.academy.whoami.repository.GameRepository;
 import com.eleks.academy.whoami.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -43,15 +45,15 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDetails> quickGame(String player) {
-        var synchronousGame = this.gameRepository.findAllAvailable(player)
+    public Optional<GameDetails> quickGame(String playerId, int maxPlayer) {
+        var synchronousGame = this.gameRepository.findAllAvailable(playerId)
                 .findFirst()
-                .map(game -> game.enrollToGame(new PersistentPlayer(player, uuidGenerator.generateId().toString())))
-                .orElseGet(() -> this.gameRepository.save(new PersistentGame(player, 4, uuidGenerator)));
+                .map(game -> game.enrollToGame(new PersistentPlayer(null, playerId)))
+                .orElseGet(() -> this.gameRepository.save(new PersistentGame(playerId, maxPlayer, uuidGenerator)));
 
         var gameDetails = GameDetails.of(synchronousGame);
         return Optional.of(gameDetails);
-    }    
+    }
 
     @Override
     public Optional<GameDetails> createGame(String player, Integer maxPlayer) {
@@ -67,13 +69,13 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void suggestCharacter(String id, String player, String character) {
+    public void suggestCharacter(String id, String playerId, CharacterSuggestion character) {
         this.findGame(id)
                 .filter(state -> state.getStatus() == GameState.SUGGESTING_CHARACTER)
                 .or(() -> {
                     throw new GameException(NOT_AVAILABLE);
                 })
-                .ifPresent(game -> game.setCharacter(player, character));
+                .ifPresent(game -> game.setCharacter(playerId, character.getName(), character.getCharacter()));
     }
 
     @Override
@@ -149,6 +151,21 @@ public class GameServiceImpl implements GameService {
             return Optional.of(GameDetails.of(game.get().leaveGame(player)));
         } else
             throw new GameException("The game " + id + " not found");
+    }
+
+    @Override
+    public Optional<TurnDetail> getCurrentTurn(String gameId, String playerId) {
+        var game = findGame(gameId).orElse(null);
+        var currentTurn = this.findGame(gameId)
+                .map(SynchronousGame::getCurrentTurn)
+                .orElse(null);
+
+
+        var turnPlayer = game.findPlayer(currentTurn).get();
+
+        return Optional.of(TurnDetail.builder()
+                .currentPlayer(turnPlayer)
+                .players(game.getPlayersInGameWithState()).build());
     }
 
     private Optional<SynchronousGame> findGame(String id) {

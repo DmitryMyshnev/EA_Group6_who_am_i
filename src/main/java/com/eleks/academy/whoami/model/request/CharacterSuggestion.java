@@ -13,7 +13,7 @@ import javax.validation.constraints.NotBlank;
 public class CharacterSuggestion {
 
     @NotBlank
-    @Length(min = 2,max = 50,message = "Message is too short or too long")
+    @Length(min = 2, max = 50, message = "Message is too short or too long")
     private String character;
-
+    private String name;
 }

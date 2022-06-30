@@ -22,7 +22,7 @@ public interface SynchronousGame  {
 
     boolean isAvailable();
 
-    void setCharacter(String player, String character);
+    void setCharacter(String playerId, String name, String character);
 
     SynchronousGame start();
 
@@ -34,4 +34,5 @@ public interface SynchronousGame  {
 
     SynchronousGame leaveGame(String player);
 
+     String getCurrentTurn();
 }

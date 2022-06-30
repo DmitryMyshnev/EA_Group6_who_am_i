@@ -22,7 +22,7 @@ public class PersistentPlayer implements SynchronousPlayer {
     private final Queue<String> answerQueue = new ConcurrentLinkedQueue<>();
 
     public PersistentPlayer(String name, String id) {
-        this.name = Objects.requireNonNull(name);
+        this.name =name;
         this.id = id;
     }
 
