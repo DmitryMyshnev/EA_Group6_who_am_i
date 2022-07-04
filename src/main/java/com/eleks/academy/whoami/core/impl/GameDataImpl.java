@@ -46,8 +46,9 @@ public class GameDataImpl implements GameData {
     }
 
     @Override
-    public void savePlayersAnswer(String playerName, PlayersAnswer answer) {
+    public PlayersAnswer savePlayersAnswer(String playerName, PlayersAnswer answer) {
         this.playersAnswerQueue.add(new AnsweringPlayer(playerName, answer));
+        return answer;
     }
 
     @Override
@@ -75,6 +76,15 @@ public class GameDataImpl implements GameData {
     @Override
     public void removeAllPlayers() {
         this.players.clear();
+    }
+
+    @Override
+    public SynchronousPlayer currentTurnPlayer() {
+        return playersWithStates.stream()
+                .filter(player-> player.getState().equals(ASKING))
+                .findFirst()
+                .map(PlayersWithState::getPlayer)
+                .orElseThrow(()->new GameException("Player not found"));
     }
 
     @Override
@@ -153,8 +163,7 @@ public class GameDataImpl implements GameData {
     @Override
     public void markAnsweringStateExceptCurrentTurnPlayer(String currentTurnPlayerId) {
         updatePlayerState(currentTurnPlayerId, ASKING);
-        this.playersWithStates.stream()
-                .map(PlayersWithState::getPlayer)
+        this.players.stream()
                 .map(Player::getId)
                 .filter(id -> !id.equals(currentTurnPlayerId))
                 .forEach(id -> updatePlayerState(id, ANSWERING));

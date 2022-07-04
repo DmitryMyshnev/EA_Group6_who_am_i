@@ -31,7 +31,7 @@ public class GameLoop implements Game {
         boolean status = true;
         while (status) {
             boolean turnResult = this.makeTurn();
-            if(this.isFinished()){
+            if (this.isFinished()) {
                 break;
             }
             while (turnResult) {
@@ -72,13 +72,14 @@ public class GameLoop implements Game {
                         .handle((message, exception) -> {
                             var playerId = player.getId();
                             if (exception != null) {
-                                gameData.savePlayersAnswer(player.getName(), PlayersAnswer.NOT_SURE);
                                 gameData.incrementInactivityCounter(playerId);
                                 if (gameData.getInactivityCounter(playerId) == MAX_NUMBER_COUNT_MISSING_ANSWER) {
                                     gameData.removePlayer(player);
                                     gameData.updatePlayerState(playerId, LOSER);
+                                }else if (currentGuesser.isGuessing()) {
+                                    return NO_ANSWER;
                                 }
-                                return PlayersAnswer.NOT_SURE;
+                                return gameData.savePlayersAnswer(player.getName(), NOT_SURE);
                             }
                             gameData.clearInactivityCounter(playerId);
                             gameData.savePlayersAnswer(player.getName(), message);
