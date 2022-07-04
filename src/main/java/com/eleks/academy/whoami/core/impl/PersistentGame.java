@@ -160,7 +160,6 @@ public class PersistentGame implements SynchronousGame {
         hasCorrectState(player, ASKING)
                 .filter(timer -> isTimeOut(gameData.getInitialTime(), WAITING_QUESTION_TIMEOUT))
                 .or(() -> {
-                    gameData.updatePlayerState(id, LOSER);
                     throw new GameException(TIME_OVER);
                 })
                 .ifPresent(synchronousPlayer -> synchronousPlayer.setAnswer(message, false));
@@ -180,6 +179,10 @@ public class PersistentGame implements SynchronousGame {
     @Override
     public void answerQuestion(SynchronousPlayer player, PlayersAnswer answer) {
         turnLock.lock();
+        var currentTurn = gameData.currentTurnPlayer();
+        if (currentTurn.isGuessing() && answer.equals(PlayersAnswer.NOT_SURE)) {
+            throw new GameException(NOT_AVAILABLE);
+        }
         var playerId = player.getId();
         try {
             hasCorrectState(player, ANSWERING)
@@ -187,8 +190,7 @@ public class PersistentGame implements SynchronousGame {
                     .or(() -> {
                         var counter = gameData.getInactivityCounter(playerId);
                         if (counter == 3) {
-                            gameData.updatePlayerState(id, LOSER);
-                            throw new GameException(TIME_OVER);
+                            return Optional.empty();
                         }
                         gameData.incrementInactivityCounter(playerId);
                         return Optional.of(player);
@@ -201,7 +203,6 @@ public class PersistentGame implements SynchronousGame {
             turnLock.unlock();
         }
     }
-
 
     @Override
     public History getHistory() {

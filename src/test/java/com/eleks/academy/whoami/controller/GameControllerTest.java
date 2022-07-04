@@ -399,6 +399,42 @@ class GameControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void changeTurnAfterAnsweringNoOnGuessingCharacter() throws Exception{
+        var game = initGame();
+        game.start();
+        var players = game.getPlayersInGame();
+        game.guessCharacter(players.get(0),"Am I Batman?");
+        game.answerQuestion(players.get(1), PlayersAnswer.NO);
+        game.answerQuestion(players.get(2), PlayersAnswer.NO);
+        game.answerQuestion(players.get(3), PlayersAnswer.NO);
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId())
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.players[0].state").value(PlayerState.ANSWERING.toString()));
+
+    }
+
+    @Test
+    void notCorrectAnswerDuringGuessingCharacterThrowException()throws Exception{
+        var game = initGame();
+        game.start();
+        var players = game.getPlayersInGame();
+        game.guessCharacter(players.get(0),"Am I Batman?");
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.post("/games/" + game.getId() + "/answer")
+                                .header("X-Player", "Sam")
+                                .content("""
+                                        {
+                                          "message": "NOT_SURE"
+                                        }""")
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(res -> Assertions.assertTrue(res.getResolvedException() instanceof GameException));
+    }
+
     private SynchronousGame initGame() {
         var game = new PersistentGame("Pol", 4, uuidGenerator);
         gameRepository.save(game);
