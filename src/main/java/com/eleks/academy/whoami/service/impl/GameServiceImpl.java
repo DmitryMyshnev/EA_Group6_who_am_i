@@ -51,7 +51,7 @@ public class GameServiceImpl implements GameService {
 
         var gameDetails = GameDetails.of(synchronousGame);
         return Optional.of(gameDetails);
-    }    
+    }
 
     @Override
     public Optional<GameDetails> createGame(String player, Integer maxPlayer) {
@@ -83,20 +83,23 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<SynchronousPlayer> renamePlayer(String id, String oldName, String newName) {
-        var currentGame = this.findGame(id);
-        var synchronousPlayer = findPlayer(id, oldName);
+    public Optional<SynchronousPlayer> renamePlayer(String gameId, String oldName, String newName) {
+        var currentGame = this.findGame(gameId);
+        var synchronousPlayer = findPlayer(gameId, oldName);
         currentGame
                 .filter(game -> game.getStatus().equals(GameState.SUGGESTING_CHARACTER))
                 .or(() -> {
                     throw new GameException(NOT_AVAILABLE);
                 })
                 .map(SynchronousGame::getPlayersInGame)
-                .ifPresent(players -> players.stream()
-                        .filter(f -> !f.getName().equals(newName))
-                        .findFirst()
-                        .orElseThrow(() -> new GameException("Player with name '" + newName + "' already exist")
-                        ));
+                .ifPresent(players -> players.stream().
+                        filter(f -> !f.getName().equals(oldName))
+                        .forEach(player -> {
+                            if (player.getName().equals(newName)) {
+                                throw new GameException("Player with name '" + newName + "' already exist");
+                            }
+                        })
+                );
         return Optional.of(synchronousPlayer)
                 .map(player -> player.setName(newName));
     }
