@@ -24,7 +24,7 @@ public class GameDetails {
 
     private List<PlayersWithState> players;
 
-    private History history;
+    // private History history;
 
     public static GameDetails of(SynchronousGame game) {
         return GameDetails.builder()
@@ -32,7 +32,7 @@ public class GameDetails {
                 .status(game.getStatus())
                 .players(game.getPlayersInGameWithState())
                 .currentTurn(game.getCurrentTurn())
-                .history(game.getHistory())
+                //.history(game.getHistory())
                 .build();
     }
 
