@@ -4,8 +4,8 @@ public enum GameState {
     WAITING_FOR_PLAYER("com.eleks.academy.whoami.core.state.WaitingForPlayers"),
     SUGGESTING_CHARACTER("com.eleks.academy.whoami.core.state.SuggestingCharacters"),
     PROCESSING_QUESTION("com.eleks.academy.whoami.core.state.ProcessingQuestion"),
-    READY_TO_START(""),
-    FINISHED("");
+    READY_TO_START("READY_TO_START"),
+    FINISHED("FINISHED");
 
     private final String state;
 
