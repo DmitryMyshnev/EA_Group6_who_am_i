@@ -36,31 +36,31 @@ public class GameController {
     private final GameService gameService;
 
     @GetMapping("/quick-game")
-    public ResponseEntity<GameDetails> quickGame(@RequestHeader(PLAYER) String player) {
-        return this.gameService.quickGame(player, 4)
+    public ResponseEntity<GameDetails> quickGame(@RequestHeader(PLAYER) String playerId) {
+        return this.gameService.quickGame(playerId, 4)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @PostMapping
-    public ResponseEntity<GameDetails> createGame(@RequestHeader(PLAYER) String player,
+    public ResponseEntity<GameDetails> createGame(@RequestHeader(PLAYER) String playerId,
                                                   @RequestBody NewGameRequest gameRequest) {
         System.out.println("createGame");
-        return this.gameService.quickGame(player, gameRequest.getMaxPlayers())
+        return this.gameService.quickGame(playerId, gameRequest.getMaxPlayers())
                 .map(gameDetails -> ResponseEntity.status(HttpStatus.CREATED).body(gameDetails))
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @GetMapping
-    public List<GameLight> findAvailableGames(@RequestHeader(PLAYER) String player) {
-        return this.gameService.findAvailableGames(player);
+    public List<GameLight> findAvailableGames(@RequestHeader(PLAYER) String playerId) {
+        return this.gameService.findAvailableGames(playerId);
     }
 
     @PostMapping("/{id}/players")
     public ResponseEntity<SynchronousPlayer> enrollToGame(@PathVariable("id") String id,
-                                                          @RequestHeader(PLAYER) String player) {
+                                                          @RequestHeader(PLAYER) String playerId) {
         System.out.println("enrollToGame");
-        return this.gameService.enrollToGame(id, player)
+        return this.gameService.enrollToGame(id, playerId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
@@ -68,16 +68,15 @@ public class GameController {
     @PostMapping("/{id}/characters")
     @ResponseStatus(HttpStatus.OK)
     public void suggestCharacter(@PathVariable("id") String id,
-                                 @RequestHeader(PLAYER) String player,
+                                 @RequestHeader(PLAYER) String playerId,
                                  @Valid @RequestBody CharacterSuggestion suggestion) {
         System.out.println("suggestCharacter");
-        this.gameService.suggestCharacter(id, player, suggestion);
+        this.gameService.suggestCharacter(id, playerId, suggestion);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GameDetails> findById(@PathVariable("id") String id,
-                                                @RequestHeader(PLAYER) String player) {
-        System.out.println("findById");
+                                                @RequestHeader(PLAYER) String playerId) {
         return this.gameService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -85,18 +84,18 @@ public class GameController {
 
     @PostMapping("/{id}/players/name")
     public ResponseEntity<SynchronousPlayer> renamePlayer(@PathVariable("id") String id,
-                                                          @RequestHeader(PLAYER) String player,
+                                                          @RequestHeader(PLAYER) String playerId,
                                                           @RequestParam(value = "name") @Length(min = 2, max = 50) String newName) {
-        return this.gameService.renamePlayer(id, player, newName)
+        return this.gameService.renamePlayer(id, playerId, newName)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @PostMapping("/{id}")
     public ResponseEntity<GameDetails> startGame(@PathVariable("id") String id,
-                                                 @RequestHeader(PLAYER) String player) {
+                                                 @RequestHeader(PLAYER) String playerId) {
         System.out.println("startGame");
-        return this.gameService.startGame(id, player)
+        return this.gameService.startGame(id, playerId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -104,10 +103,10 @@ public class GameController {
     @PostMapping("/{id}/questions")
     @ResponseStatus(HttpStatus.OK)
     public void askQuestion(@PathVariable("id") String id,
-                            @RequestHeader(PLAYER) String player,
+                            @RequestHeader(PLAYER) String playerId,
                             @Valid @RequestBody Message message) {
         System.out.println("askQuestion");
-        this.gameService.askQuestion(id, player, message.getMessage());
+        this.gameService.askQuestion(id, playerId, message.getMessage());
     }
 
     @GetMapping("/{id}/leave-game")

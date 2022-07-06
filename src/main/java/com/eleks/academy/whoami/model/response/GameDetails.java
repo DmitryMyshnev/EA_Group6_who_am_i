@@ -18,7 +18,7 @@ public class GameDetails {
 
     private String id;
 
-    private GameState status;
+    private String status;
 
     private String currentTurn;
 
@@ -29,7 +29,7 @@ public class GameDetails {
     public static GameDetails of(SynchronousGame game) {
         return GameDetails.builder()
                 .id(game.getId())
-                .status(game.getStatus())
+                .status(game.getStatus().getState())
                 .players(game.getPlayersInGameWithState())
                 .currentTurn(game.getCurrentTurn())
                 //.history(game.getHistory())

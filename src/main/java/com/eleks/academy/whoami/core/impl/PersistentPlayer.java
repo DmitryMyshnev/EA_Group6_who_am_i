@@ -6,12 +6,13 @@ import com.eleks.academy.whoami.model.request.PlayersAnswer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
-import java.util.Objects;
 import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 public class PersistentPlayer implements SynchronousPlayer {
-    @JsonIgnore
+
     private final String id;
     private String name;
     @Getter
