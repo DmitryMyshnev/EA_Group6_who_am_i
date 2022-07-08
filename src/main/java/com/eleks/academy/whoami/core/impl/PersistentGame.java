@@ -213,7 +213,6 @@ public class PersistentGame implements SynchronousGame {
     @Override
     public SynchronousGame leaveGame(String player) {
         turnLock.lock();
-        // List<SynchronousPlayer> players = getPlayersInGame();
         try {
             findPlayer(player).ifPresent(gameData::removePlayer);
             if (gameData.allPlayers().size() < 2 && isPreparingStage()) {
