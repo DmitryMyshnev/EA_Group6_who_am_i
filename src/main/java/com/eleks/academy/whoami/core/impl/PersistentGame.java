@@ -132,7 +132,7 @@ public class PersistentGame implements SynchronousGame {
                         synchronousPlayer.setName(name);
                         gameData.putCharacter(synchronousPlayer.getId(), character);
                         gameData.updatePlayerState(playerId, PlayerState.READY);
-                        if (gameData.availableCharactersSize() == maxPlayers) {
+                        if (gameData.availableCharactersSize() == gameData.allPlayers().size()) {
                             this.start();
                         }
                     });
@@ -213,16 +213,13 @@ public class PersistentGame implements SynchronousGame {
     @Override
     public SynchronousGame leaveGame(String player) {
         turnLock.lock();
-        List<SynchronousPlayer> players = getPlayersInGame();
+        // List<SynchronousPlayer> players = getPlayersInGame();
         try {
-            if (isPreparingStage()) {
-                players.clear();
+            findPlayer(player).ifPresent(gameData::removePlayer);
+            if (gameData.allPlayers().size() < 2 && isPreparingStage()) {
                 state = GameState.FINISHED;
-                return this;
-            } else {
-                players.removeIf(p -> p.getName().equals(player));
-                return this;
             }
+            return this;
         } finally {
             turnLock.unlock();
         }
@@ -231,7 +228,7 @@ public class PersistentGame implements SynchronousGame {
     @Override
     public String getCurrentTurn() {
         return gameData.getPlayersWithState().stream()
-                .filter(pl->pl.getState().equals(ASKING))
+                .filter(pl -> pl.getState().equals(ASKING))
                 .findFirst()
                 .map(PlayersWithState::getPlayer)
                 .map(SynchronousPlayer::getId)
@@ -239,6 +236,6 @@ public class PersistentGame implements SynchronousGame {
     }
 
     private boolean isPreparingStage() {
-        return state == GameState.WAITING_FOR_PLAYER || state == GameState.SUGGESTING_CHARACTER;
+        return state == GameState.SUGGESTING_CHARACTER;
     }
 }

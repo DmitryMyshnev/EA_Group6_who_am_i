@@ -70,6 +70,11 @@ public class GameDataImpl implements GameData {
     @Override
     public void removePlayer(SynchronousPlayer player) {
         this.players.remove(player);
+        this.playersWithStates.stream()
+                .filter(playersWithState -> playersWithState.getPlayer().equals(player))
+                .findFirst()
+                .ifPresent(playersWithStates::remove);
+        this.characterMap.remove(player.getId());
     }
 
     @Override
