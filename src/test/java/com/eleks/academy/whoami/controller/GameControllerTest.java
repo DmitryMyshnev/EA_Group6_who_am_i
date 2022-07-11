@@ -385,6 +385,19 @@ class GameControllerTest {
     }
 
     @Test
+    void processingQuestionState_leaveGame() throws Exception {
+        var game = initGame();
+        game.start();
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId() + "/leave-game")
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000001"))
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.players[0].state").value(PlayerState.LOSER.toString()));
+
+    }
+
     void guessingCharacter() throws Exception {
         var game = initGame();
         game.start();

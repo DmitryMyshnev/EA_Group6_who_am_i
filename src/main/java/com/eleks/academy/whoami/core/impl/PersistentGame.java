@@ -232,7 +232,9 @@ public class PersistentGame implements SynchronousGame {
                 state = GameState.FINISHED;
                 return this;
             } else {
-                players.removeIf(p -> p.getName().equals(player));
+                findPlayer(player).ifPresent(SynchronousPlayer::markAsLeft);
+
+                //  players.removeIf(p -> p.getName().equals(player));
                 return this;
             }
         } finally {
