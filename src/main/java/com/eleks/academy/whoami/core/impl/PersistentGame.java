@@ -30,9 +30,10 @@ public class PersistentGame implements SynchronousGame {
     private final String id;
     private final Integer maxPlayers;
     private final GameData gameData;
-    public static final long SUGGESTING_CHARACTER_TIMEOUT = 120;
-    public static final long WAITING_QUESTION_TIMEOUT = 60;
-    public static final long WAITING_ANSWER_TIMEOUT = 20;
+    public static final long SUGGESTING_CHARACTER_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//120
+    public static final long WAITING_QUESTION_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//60;
+    public static final long WAITING_GUESS_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//60;
+    public static final long WAITING_ANSWER_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//20;
     private static final String TIME_OVER = "Time is over";
     private static final String NOT_AVAILABLE = "Not available";
 
@@ -159,10 +160,20 @@ public class PersistentGame implements SynchronousGame {
         hasCorrectState(player, ASKING)
                 .filter(timer -> isTimeOut(gameData.getInitialTime(), WAITING_QUESTION_TIMEOUT))
                 .or(() -> {
-                    gameData.updatePlayerState(id, LOSER);
                     throw new GameException(TIME_OVER);
                 })
                 .ifPresent(synchronousPlayer -> synchronousPlayer.setAnswer(message, false));
+    }
+
+    @Override
+    public void guessCharacter(SynchronousPlayer player, String message) {
+        hasCorrectState(player, ASKING)
+                .filter(timer -> isTimeOut(gameData.getInitialTime(), WAITING_GUESS_TIMEOUT))
+                .or(() -> {
+                    gameData.updatePlayerState(id, LOSER);
+                    throw new GameException(TIME_OVER);
+                })
+                .ifPresent(synchronousPlayer -> synchronousPlayer.setAnswer(message, true));
     }
 
     @Override
@@ -179,7 +190,6 @@ public class PersistentGame implements SynchronousGame {
                     .or(() -> {
                         var counter = gameData.getInactivityCounter(playerId);
                         if (counter == 3) {
-                            gameData.updatePlayerState(id, LOSER);
                             return Optional.empty();
                         }
                         gameData.incrementInactivityCounter(playerId);
@@ -193,7 +203,6 @@ public class PersistentGame implements SynchronousGame {
             turnLock.unlock();
         }
     }
-
 
     @Override
     public History getHistory() {
