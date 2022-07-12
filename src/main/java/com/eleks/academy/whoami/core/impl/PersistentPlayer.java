@@ -11,7 +11,7 @@ import java.util.Queue;
 import java.util.concurrent.*;
 
 public class PersistentPlayer implements SynchronousPlayer {
-    @JsonIgnore
+
     private final String id;
     private String name;
     @Getter
