@@ -379,9 +379,8 @@ class GameControllerTest {
                         MockMvcRequestBuilders.get("/games/" + game.getId() + "/leave-game")
                                 .header("X-Player", "Pol"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value("00000000-0000-0000-0000-000000000001"))
-                .andExpect(jsonPath("$.status").value(GameState.FINISHED.toString()))
-                .andExpect(jsonPath("$.playersInGame").value(0));
+                .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000001"))
+                .andExpect(jsonPath("$.status").value(GameState.FINISHED.toString()));
     }
 
     @Test
