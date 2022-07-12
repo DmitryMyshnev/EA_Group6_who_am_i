@@ -1,9 +1,8 @@
 package com.eleks.academy.whoami.configuration;
 
-import com.eleks.academy.whoami.controller.GameController;
+import com.eleks.academy.whoami.controller.UserController;
 import com.eleks.academy.whoami.core.exception.ErrorResponse;
-import com.eleks.academy.whoami.core.exception.GameException;
-import com.eleks.academy.whoami.model.response.ApiError;
+import com.eleks.academy.whoami.db.exception.CreateUserException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,30 +14,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import java.util.List;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
-@RestControllerAdvice(assignableTypes = GameController.class)
-public class GameControllerAdvice extends ResponseEntityExceptionHandler {
-
-    @ExceptionHandler(GameException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleGameException(GameException gameException) {
-        return gameException::getMessage;
-    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Object> handleException(ConstraintViolationException e) {
-        return e.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
-                .collect(collectingAndThen(toList(),
-                        details -> ResponseEntity.badRequest()
-                                .body(new ErrorResponse("Validation failed!", details))));
-    }
+@RestControllerAdvice(assignableTypes = UserController.class)
+public class UserControllerAdvice extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -52,5 +34,12 @@ public class GameControllerAdvice extends ResponseEntityExceptionHandler {
                         details -> ResponseEntity.badRequest()
                                 .body(new ErrorResponse("Validation failed!", details))
                 ));
+    }
+
+    @ExceptionHandler(CreateUserException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleCreateOrderException(CreateUserException e) {
+        String message = e.getMessage();
+        return ResponseEntity.badRequest().body(new ErrorResponse("Failed to create a user", message == null ? null : List.of(message)));
     }
 }
