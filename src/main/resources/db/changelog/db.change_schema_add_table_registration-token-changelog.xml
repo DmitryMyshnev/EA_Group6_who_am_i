@@ -5,20 +5,14 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="1" author="Dmytro Mishnev">
+    <changeSet id="2" author="Dmytro Mishnev">
 
-        <createTable tableName="users">
-            <column name="id" type="bigint" autoIncrement="true">
+        <createTable tableName="registration_token">
+            <column name="token" type="varchar(128)">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="name" type="varchar(20)">
+            <column name="create_time" type="bigint">
                 <constraints nullable="false"/>
-            </column>
-            <column name="password" type="varchar(256)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="email" type="varchar(50)">
-                <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
 
