@@ -32,3 +32,16 @@ spring:
   liquibase:
      enabled: true
      change-log: classpath:db/changelog/changelog-root.xml
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USER}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+             enable: true
+
+confirm-url: http://localhost:8080/api/v1/users/confirm
