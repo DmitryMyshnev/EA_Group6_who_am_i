@@ -7,4 +7,5 @@
     <include file="db/changelog/db.init-changelog.xml"/>
     <include file="db/changelog/db.change_schema_add_table_registration-token-changelog.xml"/>
     <include file="db/changelog/db.change_users_add_column-changelog.xml"/>
+    <include file="db/changelog/db.change_table_registration-token-changelog.xml"/>
 </databaseChangeLog>

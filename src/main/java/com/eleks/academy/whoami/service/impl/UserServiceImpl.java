@@ -13,10 +13,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -38,11 +40,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User save(String token) {
-        registrationTokenRepository.findById(token)
+        registrationTokenRepository.findByToken(token)
                 .or(() -> {
                     throw new CreateUserException("Token to confirm  not found");
                 })
-                .filter(confirmToken -> System.currentTimeMillis() < confirmToken.getCreateTime() + TimeUnit.MINUTES.toMillis(30))
+                .map(RegistrationToken::getCreateTime)
+                .filter(savedInstant -> Instant.now().compareTo(savedInstant.plus(30, ChronoUnit.MINUTES)) < 0)
                 .orElseThrow(() -> new CreateUserException("Link to confirm is not actual"));
 
         var email = getEmailByToken(token);
@@ -66,7 +69,7 @@ public class UserServiceImpl implements UserService {
                 .concat(command.getEmail());
 
         var token = Base64.getEncoder().encodeToString(userData.getBytes());
-        registrationTokenRepository.findById(token)
+        registrationTokenRepository.findByToken(token)
                 .map(registrationToken -> this.getEmailByToken(registrationToken.getToken()))
                 .filter(email -> email.equals(command.getEmail()))
                 .ifPresent(then -> {
@@ -79,14 +82,15 @@ public class UserServiceImpl implements UserService {
                 .isActivated(false)
                 .build();
         userRepository.save(user);
-        var createTokenTime = System.currentTimeMillis();
+        var createTokenTime = Instant.now();
+        var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         registrationTokenRepository.save(new RegistrationToken(token, createTokenTime));
         var urlToken = confirmUrl + "?token=" + token;
-        String text = "Dear " +command.getName() + ", welcome WAI game.\n" +
+        String text = "Dear " + command.getName() + ", welcome WAI game.\n" +
                 "To activate your account please follow the link \n" +
                 urlToken +
-                "\n\nThis link is actual until: "
-                + new Date(createTokenTime);
+                "\n\nThis link is actual until: " +
+                formatter.format(Date.from(createTokenTime.plus(30, ChronoUnit.MINUTES)));
         emailService.sendSimpleMessage(command.getEmail(), "Confirm registration", text);
     }
 

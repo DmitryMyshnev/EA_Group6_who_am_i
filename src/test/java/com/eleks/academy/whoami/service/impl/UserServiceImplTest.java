@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mail.MailSendException;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -50,7 +51,7 @@ class UserServiceImplTest {
         createUserCommand.setName("Pol");
         createUserCommand.setEmail("email");
 
-        when(tokenRepository.findById(anyString())).thenThrow(CreateUserException.class);
+        when(tokenRepository.findByToken(anyString())).thenThrow(CreateUserException.class);
 
         assertThrows(CreateUserException.class, () -> userService.confirmRegistration(createUserCommand));
     }
@@ -63,7 +64,7 @@ class UserServiceImplTest {
 
         doThrow(MailSendException.class).when(emailService).sendSimpleMessage(anyString(), anyString(), anyString());
 
-        assertThrows(CreateUserException.class, () -> userService.confirmRegistration(createUserCommand));
+        assertThrows(MailSendException.class, () -> userService.confirmRegistration(createUserCommand));
     }
 
     @Test
@@ -75,7 +76,7 @@ class UserServiceImplTest {
 
     @Test
     void givenNoActualToken_save_ShouldThrowException() {
-        var registrationToken = new RegistrationToken("token", System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(31));
+        var registrationToken = new RegistrationToken("token", Instant.now().minus(31,ChronoUnit.MINUTES));
 
         when(tokenRepository.findById(anyString())).thenReturn(Optional.of(registrationToken));
 
