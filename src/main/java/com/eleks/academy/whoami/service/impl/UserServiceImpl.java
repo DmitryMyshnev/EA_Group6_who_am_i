@@ -40,10 +40,10 @@ public class UserServiceImpl implements UserService {
     public User save(String token) {
         registrationTokenRepository.findById(token)
                 .or(() -> {
-                    throw new CreateUserException("Token for confirm  not found");
+                    throw new CreateUserException("Token to confirm  not found");
                 })
                 .filter(confirmToken -> System.currentTimeMillis() < confirmToken.getCreateTime() + TimeUnit.MINUTES.toMillis(30))
-                .orElseThrow(() -> new CreateUserException("Link for confirm is not actual"));
+                .orElseThrow(() -> new CreateUserException("Link to confirm is not actual"));
 
         var email = getEmailByToken(token);
         return userRepository.findByEmail(email)
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
                 .concat("|")
                 .concat(command.getEmail());
 
-        var token = new String(Base64.getEncoder().encode(userData.getBytes()));
+        var token = Base64.getEncoder().encodeToString(userData.getBytes());
         registrationTokenRepository.findById(token)
                 .map(registrationToken -> this.getEmailByToken(registrationToken.getToken()))
                 .filter(email -> email.equals(command.getEmail()))
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
         var createTokenTime = System.currentTimeMillis();
         registrationTokenRepository.save(new RegistrationToken(token, createTokenTime));
         var urlToken = confirmUrl + "?token=" + token;
-        String text = "For confirm registration click link below, please\n\n" +
+        String text = "To confirm registration click the link below, please\n\n" +
                 urlToken +
                 "\n\nThis link is actual until "
                 + new Date(createTokenTime);

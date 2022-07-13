@@ -11,6 +11,6 @@ public class UserDto {
 
     private String email;
 
-    private boolean isActivated;
+    private Boolean isActivated;
 
 }

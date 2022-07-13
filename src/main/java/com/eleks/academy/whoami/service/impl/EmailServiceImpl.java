@@ -3,6 +3,7 @@ package com.eleks.academy.whoami.service.impl;
 import com.eleks.academy.whoami.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ public class EmailServiceImpl implements EmailService {
     private String sender;
 
     @Override
-    public void sendSimpleMessage(String to, String subject, String text) {
+    public void sendSimpleMessage(String to, String subject, String text) throws MailSendException {
         var message = new SimpleMailMessage();
         message.setFrom(sender);
         message.setTo(to);
