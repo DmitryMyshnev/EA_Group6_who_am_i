@@ -98,6 +98,7 @@ public class GameLoop implements Game {
             if (currentGuesser.isGuessing()) {
                 gameData.updatePlayerState(currentGuesser.getId(), WINNER);
                 gameData.removePlayer(currentGuesser);
+                return false;
             }
             return true;
         }

@@ -430,6 +430,23 @@ class GameControllerTest {
     }
 
     @Test
+    void changeTurnAfterSuccessfulGuessingCharacter() throws Exception{
+        var game = initGame();
+        game.start();
+        var players = game.getPlayersInGame();
+        game.guessCharacter(players.get(0),"Am I Batman?");
+        game.answerQuestion(players.get(1), PlayersAnswer.YES);
+        game.answerQuestion(players.get(2), PlayersAnswer.YES);
+        game.answerQuestion(players.get(3), PlayersAnswer.NO);
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId())
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.players[2].state").value(PlayerState.ASKING.toString()));
+    }
+
+    @Test
     void notCorrectAnswerDuringGuessingCharacterThrowException()throws Exception{
         var game = initGame();
         game.start();
