@@ -82,9 +82,10 @@ public class UserServiceImpl implements UserService {
         var createTokenTime = System.currentTimeMillis();
         registrationTokenRepository.save(new RegistrationToken(token, createTokenTime));
         var urlToken = confirmUrl + "?token=" + token;
-        String text = "To confirm registration click the link below, please\n\n" +
+        String text = "Dear " +command.getName() + ", welcome WAI game.\n" +
+                "To activate your account please follow the link \n" +
                 urlToken +
-                "\n\nThis link is actual until "
+                "\n\nThis link is actual until: "
                 + new Date(createTokenTime);
         emailService.sendSimpleMessage(command.getEmail(), "Confirm registration", text);
     }
