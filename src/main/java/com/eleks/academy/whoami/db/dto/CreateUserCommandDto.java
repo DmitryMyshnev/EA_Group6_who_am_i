@@ -11,8 +11,6 @@ import javax.validation.constraints.Pattern;
 @Data
 public class CreateUserCommandDto {
 
-    @NotNull
-    @NotBlank
     @Length(min =  2, max = 50, message = "Username is too short or too long")
     private String userName;
 
@@ -21,7 +19,7 @@ public class CreateUserCommandDto {
     private String  email;
 
     @NotNull
-    @Length(min = 8, message = "Password must be more than 8 characters")
+    @Length(min = 8, message = "Password must be more than 8 symbols")
     @Pattern(regexp = "^[^\\s]+[^\\s]+$", message = "Password cannot have any whitespaces")
     private String password;
 }
