@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mail.MailSendException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -25,14 +26,15 @@ class UserServiceImplTest {
     private UserRepository userRepository;
     private RegistrationTokenRepository tokenRepository;
     private EmailService emailService;
-    private UserServiceImpl userService;
+    private AuthServiceImpl authService;
 
     @BeforeEach
     void init() {
         userRepository = Mockito.mock(UserRepository.class);
         tokenRepository = Mockito.mock(RegistrationTokenRepository.class);
         emailService = Mockito.mock(EmailService.class);
-        userService = new UserServiceImpl(userRepository, tokenRepository, emailService);
+        PasswordEncoder   encoder = Mockito.mock(PasswordEncoder.class);
+        authService = new AuthServiceImpl(userRepository, tokenRepository, emailService, encoder);
     }
 
     @Test
@@ -42,7 +44,7 @@ class UserServiceImplTest {
 
         when(userRepository.findByEmail(anyString())).thenThrow(CreateUserException.class);
 
-        assertThrows(CreateUserException.class, () -> userService.confirmRegistration(createUserCommand));
+        assertThrows(CreateUserException.class, () -> authService.confirmRegistration(createUserCommand));
     }
 
     @Test
@@ -53,7 +55,7 @@ class UserServiceImplTest {
 
         when(tokenRepository.findByToken(anyString())).thenThrow(CreateUserException.class);
 
-        assertThrows(CreateUserException.class, () -> userService.confirmRegistration(createUserCommand));
+        assertThrows(CreateUserException.class, () -> authService.confirmRegistration(createUserCommand));
     }
 
     @Test
@@ -64,14 +66,14 @@ class UserServiceImplTest {
 
         doThrow(MailSendException.class).when(emailService).sendSimpleMessage(anyString(), anyString(), anyString());
 
-        assertThrows(MailSendException.class, () -> userService.confirmRegistration(createUserCommand));
+        assertThrows(MailSendException.class, () -> authService.confirmRegistration(createUserCommand));
     }
 
     @Test
     void givenToken_save_notExistShouldThrowException() {
         when(tokenRepository.findById(anyString())).thenThrow(CreateUserException.class);
 
-        assertThrows(CreateUserException.class, () -> userService.save("token"));
+        assertThrows(CreateUserException.class, () -> authService.save("token"));
     }
 
     @Test
@@ -80,6 +82,6 @@ class UserServiceImplTest {
 
         when(tokenRepository.findById(anyString())).thenReturn(Optional.of(registrationToken));
 
-        assertThrows(CreateUserException.class, () -> userService.save("token"));
+        assertThrows(CreateUserException.class, () -> authService.save("token"));
     }
 }
