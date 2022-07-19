@@ -30,10 +30,10 @@ public class PersistentGame implements SynchronousGame {
     private final String id;
     private final Integer maxPlayers;
     private final GameData gameData;
-    public static final long SUGGESTING_CHARACTER_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//120
-    public static final long WAITING_QUESTION_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//60;
-    public static final long WAITING_GUESS_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//60;
-    public static final long WAITING_ANSWER_TIMEOUT = TimeUnit.MINUTES.toMillis(30);//20;
+    public static final long SUGGESTING_CHARACTER_TIMEOUT = 120;
+    public static final long WAITING_QUESTION_TIMEOUT = 60;
+    public static final long WAITING_GUESS_TIMEOUT = 60;
+    public static final long WAITING_ANSWER_TIMEOUT = 20;
     private static final String TIME_OVER = "Time is over";
     private static final String NOT_AVAILABLE = "Not available";
 
@@ -230,13 +230,10 @@ public class PersistentGame implements SynchronousGame {
             if (isPreparingStage()) {
                 players.clear();
                 state = GameState.FINISHED;
-                return this;
             } else {
                 findPlayer(player).ifPresent(SynchronousPlayer::markAsLeft);
-
-                //  players.removeIf(p -> p.getName().equals(player));
-                return this;
             }
+            return this;
         } finally {
             turnLock.unlock();
         }
