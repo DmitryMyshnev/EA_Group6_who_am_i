@@ -47,3 +47,10 @@ spring:
           timeout: 5000
 
 confirm-url: http://localhost:8080/api/v1/users/confirm
+jwt:
+  token:
+     secret: ${JWT_SECRET_KEY}
+  access-token:
+          expiration: 300000
+  refresh-token:
+          expiration: 86400000
