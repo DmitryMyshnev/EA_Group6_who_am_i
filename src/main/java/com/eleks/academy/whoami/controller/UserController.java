@@ -4,6 +4,7 @@ import com.eleks.academy.whoami.db.dto.CreateUserCommandDto;
 import com.eleks.academy.whoami.db.dto.UserDto;
 import com.eleks.academy.whoami.db.mapper.UserMapper;
 import com.eleks.academy.whoami.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ public class UserController {
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping
+    @Operation(summary = "Registration new Player in system")
     public void createUser(@RequestBody @Valid CreateUserCommandDto createUserDto) {
         var createCommand = userMapper.toModel(createUserDto);
         userService.confirmRegistration(createCommand);
@@ -38,6 +40,7 @@ public class UserController {
 
     @Transactional
     @GetMapping("/confirm")
+    @Operation(summary = "Confirmation account via email")
     public ResponseEntity<UserDto> confirmRegistration(@RequestParam String token) {
         var user = userService.save(token);
         var userDto = userMapper.toDTO(user);
