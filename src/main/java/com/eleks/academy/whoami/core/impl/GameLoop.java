@@ -86,10 +86,10 @@ public class GameLoop implements Game {
                                 } else if (currentGuesser.isGuessing()) {
                                     return NO_ANSWER;
                                 }
-                                return gameData.savePlayersAnswer(player.getName(), NOT_SURE);
+                                return gameData.savePlayersAnswer(player.getId(), player.getName(), NOT_SURE);
                             }
                             gameData.clearInactivityCounter(playerId);
-                            gameData.savePlayersAnswer(player.getName(), message);
+                            gameData.savePlayersAnswer(player.getId(), player.getName(), message);
                             return message;
                         }).join()
                 ).toList();

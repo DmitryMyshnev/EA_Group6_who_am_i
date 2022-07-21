@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AnsweringPlayer {
 
+    private String id;
     private String name;
     private PlayersAnswer answer;
 }
