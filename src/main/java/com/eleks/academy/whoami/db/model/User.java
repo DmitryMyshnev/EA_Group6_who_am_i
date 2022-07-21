@@ -1,6 +1,9 @@
-package com.eleks.academy.whoami.db;
+package com.eleks.academy.whoami.db.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +13,9 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -26,4 +32,7 @@ public class User {
 
     @Column(name = "email")
     private String email;
+
+    @Column(name = "is_activated")
+    private Boolean isActivated;
 }

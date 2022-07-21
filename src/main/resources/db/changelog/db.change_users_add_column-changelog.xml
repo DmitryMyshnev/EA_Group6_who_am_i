@@ -4,8 +4,13 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
-    <include file="db/changelog/db.init-changelog.xml"/>
-    <include file="db/changelog/db.change_schema_add_table_registration-token-changelog.xml"/>
-    <include file="db/changelog/db.change_users_add_column-changelog.xml"/>
-    <include file="db/changelog/db.change_table_registration-token-changelog.xml"/>
+
+    <changeSet id="3" author="Dmytro Mishnev">
+        <addColumn tableName="users">
+            <column name="is_activated" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
 </databaseChangeLog>
