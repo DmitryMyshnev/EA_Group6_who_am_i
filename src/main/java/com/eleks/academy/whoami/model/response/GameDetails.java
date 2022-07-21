@@ -1,8 +1,10 @@
 package com.eleks.academy.whoami.model.response;
 
 import com.eleks.academy.whoami.core.GameState;
-import com.eleks.academy.whoami.core.History;
 import com.eleks.academy.whoami.core.SynchronousGame;
+import com.eleks.academy.whoami.model.dto.MessagesEntry;
+import com.eleks.academy.whoami.model.dto.MessageHistory;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,15 +24,30 @@ public class GameDetails {
 
     private List<PlayersWithState> players;
 
-    private History history;
+    @JsonProperty("history")
+    private MessageHistory history;
 
     public static GameDetails of(SynchronousGame game) {
         return GameDetails.builder()
                 .id(game.getId())
                 .status(game.getStatus())
                 .players(game.getPlayersInGameWithState())
-                .history(game.getHistory())
+                .history(from(game))
                 .build();
     }
 
+    private static MessageHistory from(SynchronousGame game) {
+        var entryDtoList = game
+                .getHistory()
+                .getEntries()
+                .stream()
+                .map(entry -> MessagesEntry.builder()
+                        .id(entry.getId())
+                        .playerName(entry.getPlayerName())
+                        .playerQuestion(entry.getPlayerQuestion())
+                        .answers(entry.getAnswers())
+                        .build())
+                .toList();
+        return new MessageHistory(entryDtoList);
+    }
 }
