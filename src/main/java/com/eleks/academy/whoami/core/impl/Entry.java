@@ -11,11 +11,13 @@ import java.util.List;
 public class Entry {
 
     private Integer id;
+    private String playerId;
     private String playerName;
     private String playerQuestion;
     private List<AnsweringPlayer> answers = new ArrayList<>();
 
-    public Entry(String playerName, String playerQuestion) {
+    public Entry(String playerId, String playerName, String playerQuestion) {
+        this.playerId = playerId;
         this.playerName = playerName;
         this.playerQuestion = playerQuestion;
     }

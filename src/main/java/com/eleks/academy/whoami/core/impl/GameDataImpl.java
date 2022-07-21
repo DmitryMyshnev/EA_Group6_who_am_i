@@ -52,8 +52,8 @@ public class GameDataImpl implements GameData {
     }
 
     @Override
-    public void addPlayerQuestionInHistory(String playerName, String question) {
-        this.historyAnswers.addNewEntry(new Entry(playerName, question));
+    public void addPlayerQuestionInHistory(String playerId, String playerName, String question) {
+        this.historyAnswers.addNewEntry(new Entry(playerId, playerName, question));
     }
 
     @Override
@@ -81,10 +81,10 @@ public class GameDataImpl implements GameData {
     @Override
     public SynchronousPlayer currentTurnPlayer() {
         return playersWithStates.stream()
-                .filter(player-> player.getState().equals(ASKING))
+                .filter(player -> player.getState().equals(ASKING))
                 .findFirst()
                 .map(PlayersWithState::getPlayer)
-                .orElseThrow(()->new GameException("Player not found"));
+                .orElseThrow(() -> new GameException("Player not found"));
     }
 
     @Override
@@ -175,10 +175,11 @@ public class GameDataImpl implements GameData {
                 .filter(playersWithState -> playersWithState.getPlayer().getId().equals(id))
                 .findFirst()
                 .map(PlayersWithState::getState)
-                .orElseThrow(()->{
-                    throw  new GameException("Player not found");
+                .orElseThrow(() -> {
+                    throw new GameException("Player not found");
                 });
     }
+
     @Override
     public List<PlayersWithState> getPlayersWithState() {
         return playersWithStates;

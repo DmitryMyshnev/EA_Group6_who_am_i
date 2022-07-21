@@ -43,6 +43,7 @@ public class GameDetails {
                 .stream()
                 .map(entry -> MessagesEntry.builder()
                         .id(entry.getId())
+                        .playerId(entry.getPlayerId())
                         .playerName(entry.getPlayerName())
                         .playerQuestion(entry.getPlayerQuestion())
                         .answers(entry.getAnswers())

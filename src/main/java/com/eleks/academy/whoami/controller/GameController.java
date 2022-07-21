@@ -83,8 +83,7 @@ public class GameController {
 
     @Operation(summary = "Find game by ID. Name in header does not matter. Return info about game")
     @GetMapping("/{id}")
-    public ResponseEntity<GameDetails> findById(@PathVariable("id") String id,
-                                                @RequestHeader(PLAYER) String player) {
+    public ResponseEntity<GameDetails> findById(@PathVariable("id") String id) {
         return this.gameService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

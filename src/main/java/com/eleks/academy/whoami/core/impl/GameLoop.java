@@ -71,7 +71,7 @@ public class GameLoop implements Game {
             return false;
         }
 
-        gameData.addPlayerQuestionInHistory(currentGuesser.getName(), question);
+        gameData.addPlayerQuestionInHistory(currentGuesser.getId(), currentGuesser.getName(), question);
         gameData.setInitialTime();
         var answers = turn.getOtherPlayers()
                 .parallelStream()
