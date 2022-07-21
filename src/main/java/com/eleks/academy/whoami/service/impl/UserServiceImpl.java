@@ -31,6 +31,9 @@ public class UserServiceImpl implements UserService {
     @Value("${confirm-url}")
     private String confirmUrl;
 
+    @Value("${server.servlet.context-path}")
+    private String postfix;
+
     @Transactional
     @Override
     public Optional<User> findUserByEmail(String email) {
@@ -85,7 +88,7 @@ public class UserServiceImpl implements UserService {
         var createTokenTime = Instant.now();
         var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         registrationTokenRepository.save(new RegistrationToken(token, createTokenTime));
-        var urlToken = confirmUrl + "?token=" + token;
+        var urlToken = confirmUrl + postfix + "/users/confirm?token=" + token;
         String text = "Dear " + command.getName() + ", welcome WAI game.\n" +
                 "To activate your account please follow the link \n" +
                 urlToken +
