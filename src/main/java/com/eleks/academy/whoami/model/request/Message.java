@@ -13,6 +13,6 @@ import javax.validation.constraints.NotBlank;
 public class Message {
 
     @NotBlank
-    @Length(min = 1,max = 255,message = "Message is too short or too long")
+    @Length(min = 1,max = 256,message = "Message is too short or too long")
     private String message;
 }

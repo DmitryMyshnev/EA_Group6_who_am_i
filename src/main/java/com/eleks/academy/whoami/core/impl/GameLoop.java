@@ -29,7 +29,9 @@ public class GameLoop implements Game {
     @Override
     public Future<GameState> play() {
         boolean status = true;
+        String previousPlayerId = "";
         while (status) {
+            previousPlayerId = turn.getGuesser().getId();
             boolean turnResult = this.makeTurn();
             if (this.isFinished()) {
                 break;
@@ -40,6 +42,11 @@ public class GameLoop implements Game {
             var synchronousPlayer = turn.changeTurn();
             gameData.markAnsweringStateExceptCurrentTurnPlayer(synchronousPlayer.getId());
             status = !this.isFinished();
+        }
+        if (gameData.getPlayerState(previousPlayerId).equals(WINNER)) {
+            gameData.updatePlayerState(turn.getGuesser().getId(), LOSER);
+        } else {
+            gameData.updatePlayerState(turn.getGuesser().getId(), WINNER);
         }
         return CompletableFuture.completedFuture(GameState.FINISHED);
     }
@@ -76,7 +83,7 @@ public class GameLoop implements Game {
                                 if (gameData.getInactivityCounter(playerId) == MAX_NUMBER_COUNT_MISSING_ANSWER) {
                                     gameData.removePlayer(player);
                                     gameData.updatePlayerState(playerId, LOSER);
-                                }else if (currentGuesser.isGuessing()) {
+                                } else if (currentGuesser.isGuessing()) {
                                     return NO_ANSWER;
                                 }
                                 return gameData.savePlayersAnswer(player.getName(), NOT_SURE);
@@ -98,6 +105,7 @@ public class GameLoop implements Game {
             if (currentGuesser.isGuessing()) {
                 gameData.updatePlayerState(currentGuesser.getId(), WINNER);
                 gameData.removePlayer(currentGuesser);
+                return false;
             }
             return true;
         }
