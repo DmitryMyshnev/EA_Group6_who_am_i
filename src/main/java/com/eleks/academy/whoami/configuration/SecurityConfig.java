@@ -2,7 +2,7 @@ package com.eleks.academy.whoami.configuration;
 
 import com.eleks.academy.whoami.security.AuthEntryPointJwt;
 import com.eleks.academy.whoami.security.AuthTokenFilter;
-import com.eleks.academy.whoami.service.UserService;
+import com.eleks.academy.whoami.service.impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -23,21 +22,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     private final AuthEntryPointJwt unauthorizedHandler;
-    private final UserService userService;
+    private final UserServiceImpl userService;
+    private final PasswordEncoder encoder;
+    private final AuthTokenFilter authenticationJwtTokenFilter;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
-    @Bean
-    public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter();
-    }
 
     @Override
     public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(passwordEncoder());
+        authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(encoder);
     }
 
     @Bean
@@ -54,6 +47,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests().antMatchers("/auth/**").permitAll()
                 .anyRequest().authenticated();
 
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }

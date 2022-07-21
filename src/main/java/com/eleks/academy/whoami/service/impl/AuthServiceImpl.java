@@ -1,104 +1,74 @@
 package com.eleks.academy.whoami.service.impl;
 
-import com.eleks.academy.whoami.db.dto.CreateUserCommand;
-import com.eleks.academy.whoami.db.dto.JwtResponse;
 import com.eleks.academy.whoami.db.dto.CredentialRequest;
-import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.model.RegistrationToken;
+import com.eleks.academy.whoami.db.dto.JwtResponse;
+import com.eleks.academy.whoami.db.dto.RefreshTokenCommandDto;
+import com.eleks.academy.whoami.db.dto.RefreshTokenResponse;
+import com.eleks.academy.whoami.db.model.RefreshToken;
 import com.eleks.academy.whoami.db.model.User;
-import com.eleks.academy.whoami.repository.RegistrationTokenRepository;
-import com.eleks.academy.whoami.repository.UserRepository;
+import com.eleks.academy.whoami.repository.RefreshTokenRepository;
+import com.eleks.academy.whoami.security.exception.NotFoundOauthException;
+import com.eleks.academy.whoami.security.exception.TokenRefreshException;
+import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.AuthService;
-import com.eleks.academy.whoami.service.EmailService;
+import com.eleks.academy.whoami.service.RefreshTokenService;
+import com.eleks.academy.whoami.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Date;
+import static com.eleks.academy.whoami.security.AuthTokenFilter.BEARER;
+import static java.lang.Boolean.FALSE;
 
 @RequiredArgsConstructor
 @Service
 public class AuthServiceImpl implements AuthService {
-    private final UserRepository userRepository;
-    private final RegistrationTokenRepository registrationTokenRepository;
-    private final EmailService emailService;
-    private final PasswordEncoder encoder;
 
-    @Value("${confirm-url}")
-    private String confirmUrl;
+    private static final String BAD_CREDENTIAL_ERROR_MESSAGE = "Bad credential";
+    private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
+    private final Jwt jwt;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    @Transactional
-    @Override
-    public User save(String token) {
-        registrationTokenRepository.findByToken(token)
-                .or(() -> {
-                    throw new CreateUserException("Token to confirm  not found");
-                })
-                .map(RegistrationToken::getCreateTime)
-                .filter(savedInstant -> Instant.now().compareTo(savedInstant.plus(30, ChronoUnit.MINUTES)) < 0)
-                .orElseThrow(() -> new CreateUserException("Link to confirm is not actual"));
-
-        var email = getEmailByToken(token);
-        return userRepository.findByEmail(email)
-                .map(user -> {
-                    user.setIsActivated(true);
-                    return user;
-                })
-                .orElseThrow(() -> new CreateUserException("User not found"));
-    }
-
-    @Override
-    public void confirmRegistration(CreateUserCommand command) {
-        userRepository.findByEmail(command.getEmail())
-                .ifPresent(then -> {
-                    throw new CreateUserException("User with email '" + command.getEmail() + "' already exist");
-                });
-
-        var userData = command.getName()
-                .concat("|")
-                .concat(command.getEmail());
-
-        var token = Base64.getEncoder().encodeToString(userData.getBytes());
-        registrationTokenRepository.findByToken(token)
-                .map(registrationToken -> this.getEmailByToken(registrationToken.getToken()))
-                .filter(email -> email.equals(command.getEmail()))
-                .ifPresent(then -> {
-                    throw new CreateUserException("Not available");
-                });
-        var user = User.builder()
-                .name(command.getName())
-                .email(command.getEmail())
-                .password(encoder.encode(command.getPassword()))
-                .isActivated(false)
-                .build();
-        userRepository.save(user);
-        var createTokenTime = Instant.now();
-        var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        registrationTokenRepository.save(new RegistrationToken(token, createTokenTime));
-        var urlToken = confirmUrl + "?token=" + token;
-        String text = "Dear " + command.getName() + ", welcome WAI game.\n" +
-                "To activate your account please follow the link \n" +
-                urlToken +
-                "\n\nThis link is actual until: " +
-                formatter.format(Date.from(createTokenTime.plus(30, ChronoUnit.MINUTES)));
-        emailService.sendSimpleMessage(command.getEmail(), "Confirm registration", text);
-    }
+    @Value("${jwt.access-token.expiration}")
+    private long accessTokenExpiration;
 
     @Override
     public JwtResponse authenticate(CredentialRequest request) {
-        return null;
+        var user = findByEmailAndPassword(request.getEmail(), request.getPassword());
+        var accessToken = jwt.generateToken(user.getEmail(), accessTokenExpiration);
+        var refreshToken = refreshTokenService.createRefreshToken(user);
+        return JwtResponse.builder()
+                .userId(user.getId())
+                .username(user.getName())
+                .email(user.getEmail())
+                .token(accessToken)
+                .type(BEARER)
+                .refreshToken(refreshToken.getToken())
+                .build();
     }
 
-    private String getEmailByToken(String token) {
-        return new String(Base64
-                .getDecoder()
-                .decode(token))
-                .split("\\|")[1];
+    @Override
+    public RefreshTokenResponse refreshToken(RefreshTokenCommandDto refreshTokenCommandDto) {
+        return refreshTokenRepository.findByToken(refreshTokenCommandDto.getRefreshToken())
+                .filter(refreshTokenService::verifyToken)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                    var token = jwt.generateToken(user.getEmail(), accessTokenExpiration);
+                    return new RefreshTokenResponse(token);
+                })
+                .orElseThrow(()-> new TokenRefreshException("Refresh token not found"));
+    }
+
+    private User findByEmailAndPassword(String email, String password) {
+        var user = (User) userService.loadUserByUsername(email);
+        if (FALSE.equals(user.getIsActivated())) {
+            throw new NotFoundOauthException(BAD_CREDENTIAL_ERROR_MESSAGE);
+        }
+        if (BCrypt.checkpw(password, user.getPassword())) {
+            return user;
+        }
+        throw new NotFoundOauthException(BAD_CREDENTIAL_ERROR_MESSAGE);
     }
 }
