@@ -6,6 +6,7 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.core.impl.PersistentPlayer;
+import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.PlayersAnswer;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
@@ -43,11 +44,11 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDetails> quickGame(String player, Integer maxPlayer) {
-        var synchronousGame = this.gameRepository.findAllAvailable(player)
+    public Optional<GameDetails> quickGame(String playerId, Integer maxPlayer) {
+        var synchronousGame = this.gameRepository.findAllAvailable(playerId)
                 .findFirst()
-                .map(game -> game.enrollToGame(new PersistentPlayer(player, uuidGenerator.generateId().toString())))
-                .orElseGet(() -> this.gameRepository.save(new PersistentGame(player, maxPlayer, uuidGenerator)));
+                .map(game -> game.enrollToGame(new PersistentPlayer("Player", playerId)))
+                .orElseGet(() -> this.gameRepository.save(new PersistentGame(playerId, maxPlayer, uuidGenerator)));
 
         var gameDetails = GameDetails.of(synchronousGame);
         return Optional.of(gameDetails);
@@ -67,13 +68,16 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void suggestCharacter(String id, String player, String character) {
+    public void suggestCharacter(String id, String player, CharacterSuggestion character) {
         this.findGame(id)
                 .filter(state -> state.getStatus() == GameState.SUGGESTING_CHARACTER)
                 .or(() -> {
                     throw new GameException(NOT_AVAILABLE);
                 })
-                .ifPresent(game -> game.setCharacter(player, character));
+                .ifPresent(game -> {
+                    this.renamePlayer(id, player, character.getName());
+                    game.setCharacter(player, character.getCharacter());
+                });
     }
 
     @Override

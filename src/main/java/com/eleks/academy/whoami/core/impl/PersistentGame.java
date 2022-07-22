@@ -44,17 +44,17 @@ public class PersistentGame implements SynchronousGame {
         this.maxPlayers = maxPlayers;
         state = GameState.WAITING_FOR_PLAYER;
         gameData = new GameDataImpl();
-        var persistentPlayer = new PersistentPlayer(hostPlayer, uuid.generateId().toString());
+        var persistentPlayer = new PersistentPlayer("Player", hostPlayer);
         gameData.addPlayer(persistentPlayer);
     }
 
     @Override
-    public Optional<SynchronousPlayer> findPlayer(String player) {
+    public Optional<SynchronousPlayer> findPlayer(String playerId) {
         turnLock.lock();
         try {
             return gameData.allPlayers()
                     .stream()
-                    .filter(existingPlayer -> existingPlayer.getName().equals(player))
+                    .filter(existingPlayer -> existingPlayer.getId().equals(playerId))
                     .findFirst();
         } finally {
             turnLock.unlock();
@@ -72,7 +72,7 @@ public class PersistentGame implements SynchronousGame {
         try {
             gameData.allPlayers()
                     .stream()
-                    .filter(newPlayer -> newPlayer.getName().equals(player.getName()))
+                    .filter(newPlayer -> newPlayer.getId().equals(player.getId()))
                     .findFirst()
                     .ifPresent(m -> {
                         throw new GameException("Player already exist");

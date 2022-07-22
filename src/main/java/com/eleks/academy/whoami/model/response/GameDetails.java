@@ -1,9 +1,8 @@
 package com.eleks.academy.whoami.model.response;
 
-import com.eleks.academy.whoami.core.GameState;
 import com.eleks.academy.whoami.core.SynchronousGame;
-import com.eleks.academy.whoami.model.dto.MessagesEntry;
 import com.eleks.academy.whoami.model.dto.MessageHistory;
+import com.eleks.academy.whoami.model.dto.MessagesEntry;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

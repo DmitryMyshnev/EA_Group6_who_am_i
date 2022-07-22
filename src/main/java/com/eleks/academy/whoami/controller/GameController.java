@@ -79,7 +79,7 @@ public class GameController {
     public void suggestCharacter(@PathVariable("id") String id,
                                  @RequestHeader(PLAYER) String player,
                                  @Valid @RequestBody CharacterSuggestion suggestion) {
-        this.gameService.suggestCharacter(id, player, suggestion.getCharacter());
+        this.gameService.suggestCharacter(id, player, suggestion);
     }
 
     @Operation(summary = "Find game by ID. Name in header does not matter. Return info about game")
