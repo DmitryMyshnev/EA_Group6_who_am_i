@@ -16,8 +16,14 @@ import java.util.List;
 @Builder
 public class MessagesEntry {
     private Integer id;
+
     private String playerId;
+
     private String playerName;
+
     private String playerQuestion;
+
+    private Boolean isGuess;
+
     private List<AnsweringPlayer> answers = new ArrayList<>();
 }

@@ -52,8 +52,8 @@ public class GameDataImpl implements GameData {
     }
 
     @Override
-    public void addPlayerQuestionInHistory(String playerId, String playerName, String question) {
-        this.historyAnswers.addNewEntry(new Entry(playerId, playerName, question));
+    public void addPlayerQuestionInHistory(String playerId, String playerName, String question, boolean isGuess) {
+        this.historyAnswers.addNewEntry(new Entry(playerId, playerName, question, isGuess));
     }
 
     @Override

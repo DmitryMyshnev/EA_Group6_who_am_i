@@ -71,10 +71,9 @@ public class GameLoop implements Game {
             return false;
         }
 
-        gameData.addPlayerQuestionInHistory(currentGuesser.getId(), currentGuesser.getName(), question);
+        gameData.addPlayerQuestionInHistory(currentGuesser.getId(), currentGuesser.getName(), question, currentGuesser.isGuessing());
         gameData.setInitialTime();
-        var answers = turn.getOtherPlayers()
-                .parallelStream()
+        var answers = turn.getOtherPlayers().parallelStream()
                 .map(player -> player.getCurrentAnswer(WAITING_ANSWER_TIMEOUT, TimeUnit.SECONDS)
                         .handle((message, exception) -> {
                             var playerId = player.getId();
@@ -86,10 +85,13 @@ public class GameLoop implements Game {
                                 } else if (currentGuesser.isGuessing()) {
                                     return NO_ANSWER;
                                 }
-                                return gameData.savePlayersAnswer(player.getId(), player.getName(), NOT_SURE);
+                                var answer = gameData.savePlayersAnswer(player.getId(), player.getName(), NOT_SURE);
+                                gameData.addPlayerAnswersInHistory();
+                                return answer;
                             }
                             gameData.clearInactivityCounter(playerId);
                             gameData.savePlayersAnswer(player.getId(), player.getName(), message);
+                            gameData.addPlayerAnswersInHistory();
                             return message;
                         }).join()
                 ).toList();
@@ -98,7 +100,6 @@ public class GameLoop implements Game {
         Predicate<PlayersAnswer> notSure = NOT_SURE::equals;
         long positiveAnswer = answers.stream().filter(yes.or(notSure)).count();
         long negativeAnswer = answers.stream().filter(NO::equals).count();
-        gameData.addPlayerAnswersInHistory();
 
         boolean win = positiveAnswer > negativeAnswer;
         if (win) {

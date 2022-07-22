@@ -45,6 +45,7 @@ public class GameDetails {
                         .playerId(entry.getPlayerId())
                         .playerName(entry.getPlayerName())
                         .playerQuestion(entry.getPlayerQuestion())
+                        .isGuess(entry.getIsGuess())
                         .answers(entry.getAnswers())
                         .build())
                 .toList();

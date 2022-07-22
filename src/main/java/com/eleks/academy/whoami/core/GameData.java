@@ -12,7 +12,7 @@ public interface GameData {
 
     void addPlayer(SynchronousPlayer player);
 
-    void addPlayerQuestionInHistory(String playerId, String playerName, String question);
+    void addPlayerQuestionInHistory(String playerId, String playerName, String question, boolean isGuess);
 
     PlayersAnswer savePlayersAnswer(String id, String playerName, PlayersAnswer answer);
 
