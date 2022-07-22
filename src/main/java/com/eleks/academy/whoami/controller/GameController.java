@@ -121,7 +121,7 @@ public class GameController {
     }
 
     @Operation(summary = "Leave player from game. Return info about game")
-    @GetMapping("/{id}/leave-game")
+    @GetMapping("/{id}/leave")
     public ResponseEntity<GameDetails> leaveGame(@RequestHeader(PLAYER) String player, @PathVariable("id") String id) {
         return this.gameService.leaveGame(player, id)
                 .map(ResponseEntity::ok)
@@ -146,5 +146,10 @@ public class GameController {
                                   @RequestHeader(PLAYER) String player,
                                   @RequestBody GuessMessage message) {
         this.gameService.guessingCharacter(id, player, message.getMessage());
+    }
+
+    @GetMapping("/all-players-count")
+    public int countOnlinePlayers( @RequestHeader(PLAYER) String player){
+        return 0;
     }
 }
