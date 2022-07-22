@@ -2,14 +2,19 @@ package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
+import com.eleks.academy.whoami.db.exception.TokenException;
+import com.eleks.academy.whoami.db.exception.NotFoundUserException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
-import com.eleks.academy.whoami.repository.RegistrationTokenRepository;
+import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,32 +23,35 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RegistrationTokenRepository registrationTokenRepository;
+    private final TokenRepository tokenRepository;
     private final EmailService emailService;
+    private final PasswordEncoder encoder;
 
     @Value("${confirm-url}")
     private String confirmUrl;
 
+
     @Value("${server.servlet.context-path}")
     private String postfix;
 
+
     @Transactional
     @Override
-    public Optional<User> findUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
     }
 
     @Transactional
     @Override
     public User save(String token) {
-        registrationTokenRepository.findByToken(token)
+        tokenRepository.findByToken(token)
                 .or(() -> {
                     throw new CreateUserException("Token to confirm  not found");
                 })
@@ -61,6 +69,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void confirmRegistration(CreateUserCommand command) {
         userRepository.findByEmail(command.getEmail())
                 .ifPresent(then -> {
@@ -72,7 +81,7 @@ public class UserServiceImpl implements UserService {
                 .concat(command.getEmail());
 
         var token = Base64.getEncoder().encodeToString(userData.getBytes());
-        registrationTokenRepository.findByToken(token)
+        tokenRepository.findByToken(token)
                 .map(registrationToken -> this.getEmailByToken(registrationToken.getToken()))
                 .filter(email -> email.equals(command.getEmail()))
                 .ifPresent(then -> {
@@ -81,14 +90,14 @@ public class UserServiceImpl implements UserService {
         var user = User.builder()
                 .name(command.getName())
                 .email(command.getEmail())
-                .password(command.getPassword())
+                .password(encoder.encode(command.getPassword()))
                 .isActivated(false)
                 .build();
         userRepository.save(user);
         var createTokenTime = Instant.now();
         var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        registrationTokenRepository.save(new RegistrationToken(token, createTokenTime));
-        var urlToken = confirmUrl + postfix + "/users/confirm?token=" + token;
+        tokenRepository.save(new RegistrationToken(token, createTokenTime));
+        var urlToken = generateUrl("/users/confirm?token=", token);
         String text = "Dear " + command.getName() + ", welcome WAI game.\n" +
                 "To activate your account please follow the link \n" +
                 urlToken +
@@ -97,10 +106,54 @@ public class UserServiceImpl implements UserService {
         emailService.sendSimpleMessage(command.getEmail(), "Confirm registration", text);
     }
 
+    @Override
+    @Transactional
+    public void sendMailRestorePassword(String email) {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundUserException("User is not found"));
+        var data = user.getName() + "|" + email;
+        var token = Base64.getEncoder().encodeToString(data.getBytes());
+        tokenRepository.findByToken(token)
+                .ifPresent(tk -> tk.setCreateTime(Instant.now()));
+
+        var urlToken = generateUrl("/users/access?token=", token);
+        String text = "Dear Player, we`ve got a request to reset your WAI password.\n" +
+                urlToken + "\n" +
+                "If you ignore this message, your password will not be changed";
+        emailService.sendSimpleMessage(email, "Confirm restore password", text);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String newPassword, String confirmToken) {
+        var email = getEmailByToken(confirmToken);
+        tokenRepository.findByToken(confirmToken)
+                .or(() -> {
+                    throw new TokenException("Token is not found");
+                })
+                .map(RegistrationToken::getCreateTime)
+                .filter(savedInstant -> Instant.now().compareTo(savedInstant.plus(1, ChronoUnit.DAYS)) < 0)
+                .or(() -> {
+                    throw new TokenException("Token is not actual");
+                })
+                .flatMap(then -> userRepository.findByEmail(email))
+                .ifPresent(user -> user.setPassword(encoder.encode(newPassword)));
+    }
+
     private String getEmailByToken(String token) {
-        return new String(Base64
-                .getDecoder()
-                .decode(token))
-                .split("\\|")[1];
+        String[] data;
+        try {
+            data = new String(Base64.getDecoder().decode(token)).split("\\|");
+            if (data.length != 2) {
+                throw new TokenException("Token is invalid");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new TokenException("Token is invalid");
+        }
+        return data[1];
+    }
+
+    private String generateUrl(String path, String token) {
+        return confirmUrl + postfix + path + token;
     }
 }
