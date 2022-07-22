@@ -133,7 +133,8 @@ public class PersistentGame implements SynchronousGame {
                         gameData.putCharacter(synchronousPlayer.getId(), character);
                         gameData.updatePlayerState(synchronousPlayer.getId(), PlayerState.READY);
                         if (gameData.availableCharactersSize() == maxPlayers) {
-                            state = GameState.READY_TO_START;
+                            state = GameState.PROCESSING_QUESTION;
+                            this.start();
                         }
                     });
         } finally {

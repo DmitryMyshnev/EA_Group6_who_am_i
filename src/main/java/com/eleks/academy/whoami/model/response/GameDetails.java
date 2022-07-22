@@ -20,7 +20,7 @@ public class GameDetails {
 
     private String id;
 
-    private GameState status;
+    private String status;
 
     private List<PlayersWithState> players;
 
@@ -30,7 +30,7 @@ public class GameDetails {
     public static GameDetails of(SynchronousGame game) {
         return GameDetails.builder()
                 .id(game.getId())
-                .status(game.getStatus())
+                .status(game.getStatus().getState())
                 .players(game.getPlayersInGameWithState())
                 .history(from(game))
                 .build();

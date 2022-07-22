@@ -121,7 +121,7 @@ public class GameController {
     }
 
     @Operation(summary = "Leave player from game. Return info about game")
-    @GetMapping("/{id}/leave")
+    @DeleteMapping("/{id}/leave")
     public ResponseEntity<GameDetails> leaveGame(@RequestHeader(PLAYER) String player, @PathVariable("id") String id) {
         return this.gameService.leaveGame(player, id)
                 .map(ResponseEntity::ok)
