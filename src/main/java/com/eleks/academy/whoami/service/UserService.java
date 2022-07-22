@@ -2,14 +2,11 @@ package com.eleks.academy.whoami.service;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.model.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
-import java.util.Optional;
-
-public interface UserService {
-
-    Optional<User> findUserByEmail(String  email);
+public interface UserService extends UserDetailsService {
 
     User save(String token);
 
-   void confirmRegistration(CreateUserCommand command);
+    void confirmRegistration(CreateUserCommand command);
 }
