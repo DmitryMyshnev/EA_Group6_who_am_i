@@ -11,7 +11,7 @@ public interface GameService {
 
     Optional<SynchronousPlayer> enrollToGame(String id, String player);
 
-    Optional<GameDetails> quickGame(String player);
+    Optional<GameDetails> quickGame(String player, Integer maxPlayer);
 
     Optional<GameDetails> createGame(String player, Integer maxPlayer);
 

@@ -40,8 +40,9 @@ public class GameController {
             " After next request will add new player to game with name from  header." +
             " Return info about new game.")
     @GetMapping("/quick-game")
-    public ResponseEntity<GameDetails> quickGame(@RequestHeader(PLAYER) String player) {
-        return this.gameService.quickGame(player)
+    public ResponseEntity<GameDetails> quickGame(@RequestHeader(PLAYER) String player,
+                                                 @RequestBody NewGameRequest gameRequest) {
+        return this.gameService.quickGame(player, gameRequest.getMaxPlayers())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
@@ -51,7 +52,7 @@ public class GameController {
     @PostMapping
     public ResponseEntity<GameDetails> createGame(@RequestHeader(PLAYER) String player,
                                                   @RequestBody NewGameRequest gameRequest) {
-        return this.gameService.createGame(player, gameRequest.getMaxPlayers())
+        return this.gameService.quickGame(player, gameRequest.getMaxPlayers())
                 .map(gameDetails -> ResponseEntity.status(HttpStatus.CREATED).body(gameDetails))
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }

@@ -43,11 +43,11 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDetails> quickGame(String player) {
+    public Optional<GameDetails> quickGame(String player, Integer maxPlayer) {
         var synchronousGame = this.gameRepository.findAllAvailable(player)
                 .findFirst()
                 .map(game -> game.enrollToGame(new PersistentPlayer(player, uuidGenerator.generateId().toString())))
-                .orElseGet(() -> this.gameRepository.save(new PersistentGame(player, 4, uuidGenerator)));
+                .orElseGet(() -> this.gameRepository.save(new PersistentGame(player, maxPlayer, uuidGenerator)));
 
         var gameDetails = GameDetails.of(synchronousGame);
         return Optional.of(gameDetails);
