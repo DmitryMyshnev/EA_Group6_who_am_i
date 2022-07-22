@@ -36,7 +36,7 @@ public class PersistentGame implements SynchronousGame {
     public static final long WAITING_ANSWER_TIMEOUT = 20;
     private static final String TIME_OVER = "Time is over";
     private static final String NOT_AVAILABLE = "Not available";
-
+    private int indexOfName = 1;
     private GameState state;
 
     public PersistentGame(String hostPlayer, Integer maxPlayers, IdGenerator uuid) {
@@ -44,7 +44,7 @@ public class PersistentGame implements SynchronousGame {
         this.maxPlayers = maxPlayers;
         state = GameState.WAITING_FOR_PLAYER;
         gameData = new GameDataImpl();
-        var persistentPlayer = new PersistentPlayer("Player", hostPlayer);
+        var persistentPlayer = new PersistentPlayer("Player " + indexOfName, hostPlayer);
         gameData.addPlayer(persistentPlayer);
     }
 
@@ -79,6 +79,7 @@ public class PersistentGame implements SynchronousGame {
                     });
 
             if (gameData.allPlayers().size() < this.maxPlayers) {
+                player.setName(player.getName() + ++indexOfName);
                 gameData.addPlayer(player);
                 if (gameData.allPlayers().size() == maxPlayers) {
                     state = GameState.SUGGESTING_CHARACTER;

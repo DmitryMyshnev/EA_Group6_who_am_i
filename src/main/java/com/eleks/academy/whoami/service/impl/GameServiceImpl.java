@@ -47,7 +47,7 @@ public class GameServiceImpl implements GameService {
     public Optional<GameDetails> quickGame(String playerId, Integer maxPlayer) {
         var synchronousGame = this.gameRepository.findAllAvailable(playerId)
                 .findFirst()
-                .map(game -> game.enrollToGame(new PersistentPlayer("Player", playerId)))
+                .map(game -> game.enrollToGame(new PersistentPlayer("Player ", playerId)))
                 .orElseGet(() -> this.gameRepository.save(new PersistentGame(playerId, maxPlayer, uuidGenerator)));
 
         var gameDetails = GameDetails.of(synchronousGame);
