@@ -68,15 +68,15 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void suggestCharacter(String id, String player, CharacterSuggestion character) {
+    public void suggestCharacter(String id, String playerId, CharacterSuggestion character) {
         this.findGame(id)
                 .filter(state -> state.getStatus() == GameState.SUGGESTING_CHARACTER)
                 .or(() -> {
                     throw new GameException(NOT_AVAILABLE);
                 })
                 .ifPresent(game -> {
-                    this.renamePlayer(id, player, character.getName());
-                    game.setCharacter(player, character.getCharacter());
+                    this.renamePlayer(id, playerId, character.getName());
+                    game.setCharacter(playerId, character.getCharacter());
                 });
     }
 
@@ -87,27 +87,18 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<SynchronousPlayer> renamePlayer(String gameId, String oldName, String newName) {
+    public Optional<SynchronousPlayer> renamePlayer(String gameId, String playerId, String newName) {
         var currentGame = this.findGame(gameId);
-        var synchronousPlayer = findPlayer(gameId, oldName);
+        var synchronousPlayer = findPlayer(gameId, playerId);
         currentGame
                 .filter(game -> game.getStatus().equals(GameState.SUGGESTING_CHARACTER))
                 .or(() -> {
                     throw new GameException(NOT_AVAILABLE);
-                })
-                .map(SynchronousGame::getPlayersInGame)
-                .ifPresent(players -> players.stream().
-                        filter(f -> !f.getName().equals(oldName))
-                        .forEach(player -> {
-                            if (player.getName().equals(newName)) {
-                                throw new GameException("Player with name '" + newName + "' already exist");
-                            }
-                        })
-                );
+                });
+
         return Optional.of(synchronousPlayer)
                 .map(player -> player.setName(newName));
     }
-
 
     @Override
     public Optional<GameDetails> startGame(String id, String player) {
@@ -177,11 +168,11 @@ public class GameServiceImpl implements GameService {
                 });
     }
 
-    private SynchronousPlayer findPlayer(String id, String player) {
+    private SynchronousPlayer findPlayer(String id, String playerId) {
         return this.findGame(id)
-                .flatMap(game -> game.findPlayer(player))
+                .flatMap(game -> game.findPlayer(playerId))
                 .orElseThrow(() -> {
-                    throw new GameException("Player '" + player + "' is not found");
+                    throw new GameException("Player '" + playerId + "' is not found");
                 });
     }
 }
