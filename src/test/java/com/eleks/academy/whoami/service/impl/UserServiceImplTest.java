@@ -2,11 +2,14 @@ package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
+import com.eleks.academy.whoami.db.exception.NotFoundUserException;
+import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
-import com.eleks.academy.whoami.repository.RegistrationTokenRepository;
+import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -25,14 +28,14 @@ import static org.mockito.Mockito.when;
 class UserServiceImplTest {
 
     private UserRepository userRepository;
-    private RegistrationTokenRepository tokenRepository;
+    private TokenRepository tokenRepository;
     private EmailService emailService;
     private UserService userService;
 
     @BeforeEach
     void init() {
         userRepository = Mockito.mock(UserRepository.class);
-        tokenRepository = Mockito.mock(RegistrationTokenRepository.class);
+        tokenRepository = Mockito.mock(TokenRepository.class);
         emailService = Mockito.mock(EmailService.class);
         PasswordEncoder   encoder = Mockito.mock(PasswordEncoder.class);
         userService = new UserServiceImpl(userRepository, tokenRepository, emailService, encoder);
@@ -81,8 +84,26 @@ class UserServiceImplTest {
     void givenNoActualToken_save_ShouldThrowException() {
         var registrationToken = new RegistrationToken("token", Instant.now().minus(31,ChronoUnit.MINUTES));
 
-        when(tokenRepository.findById(anyString())).thenReturn(Optional.of(registrationToken));
+        when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(registrationToken));
 
         assertThrows(CreateUserException.class, () -> userService.save("token"));
     }
+
+    @Test
+    void  givenNotExistEmail_sendMailRestorePassword_shouldBeThrowException(){
+        when(userRepository.findByEmail(anyString())).thenThrow(NotFoundUserException.class);
+        assertThrows(NotFoundUserException.class, () -> userService.sendMailRestorePassword("test@mail"));
+    }
+
+    @Test
+    void givenInvalidToken_changePassword_shouldBeThrowException(){
+        assertThrows(TokenException.class,()->userService.changePassword("123", "AEWq"));
+    }
+
+@Test
+    void givenNotExistToken_changePassword_shouldBeThrowException(){
+    when(tokenRepository.findByToken(anyString())).thenThrow(TokenException.class);
+
+    assertThrows(TokenException.class,()->userService.changePassword("123", "AEW|eq"));
+}
 }
