@@ -379,9 +379,89 @@ class GameControllerTest {
                         MockMvcRequestBuilders.get("/games/" + game.getId() + "/leave-game")
                                 .header("X-Player", "Pol"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value("00000000-0000-0000-0000-000000000001"))
-                .andExpect(jsonPath("$.status").value(GameState.FINISHED.toString()))
-                .andExpect(jsonPath("$.playersInGame").value(0));
+                .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000001"))
+                .andExpect(jsonPath("$.status").value(GameState.FINISHED.toString()));
+    }
+
+    @Test
+    void processingQuestionState_leaveGame() throws Exception {
+        var game = initGame();
+        game.start();
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId() + "/leave-game")
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("00000000-0000-0000-0000-000000000001"))
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.players[0].state").value(PlayerState.LOSER.toString()));
+
+    }
+
+    void guessingCharacter() throws Exception {
+        var game = initGame();
+        game.start();
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.post("/games/" + game.getId() + "/guess")
+                                .header("X-Player", "Pol")
+                                .content("""
+                                        {
+                                          "message": "Am i Batman?"
+                                        }""")
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void changeTurnAfterAnsweringNoOnGuessingCharacter() throws Exception{
+        var game = initGame();
+        game.start();
+        var players = game.getPlayersInGame();
+        game.guessCharacter(players.get(0),"Am I Batman?");
+        game.answerQuestion(players.get(1), PlayersAnswer.NO);
+        game.answerQuestion(players.get(2), PlayersAnswer.NO);
+        game.answerQuestion(players.get(3), PlayersAnswer.NO);
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId())
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.players[0].state").value(PlayerState.ANSWERING.toString()));
+
+    }
+
+    @Test
+    void changeTurnAfterSuccessfulGuessingCharacter() throws Exception{
+        var game = initGame();
+        game.start();
+        var players = game.getPlayersInGame();
+        game.guessCharacter(players.get(0),"Am I Batman?");
+        game.answerQuestion(players.get(1), PlayersAnswer.YES);
+        game.answerQuestion(players.get(2), PlayersAnswer.YES);
+        game.answerQuestion(players.get(3), PlayersAnswer.NO);
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.get("/games/" + game.getId())
+                                .header("X-Player", "Pol"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(GameState.PROCESSING_QUESTION.toString()))
+                .andExpect(jsonPath("$.players[2].state").value(PlayerState.ASKING.toString()));
+    }
+
+    @Test
+    void notCorrectAnswerDuringGuessingCharacterThrowException()throws Exception{
+        var game = initGame();
+        game.start();
+        var players = game.getPlayersInGame();
+        game.guessCharacter(players.get(0),"Am I Batman?");
+        this.mockMvc.perform(
+                        MockMvcRequestBuilders.post("/games/" + game.getId() + "/answer")
+                                .header("X-Player", "Sam")
+                                .content("""
+                                        {
+                                          "message": "NOT_SURE"
+                                        }""")
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(res -> Assertions.assertTrue(res.getResolvedException() instanceof GameException));
     }
 
     private SynchronousGame initGame() {

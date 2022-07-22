@@ -10,9 +10,8 @@ import javax.validation.constraints.NotBlank;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
-
+public class GuessMessage {
     @NotBlank
-    @Length(min = 1,max = 256,message = "Message is too short or too long")
+    @Length(min = 2,max = 128,message = "Message is too short or too long")
     private String message;
 }

@@ -12,9 +12,9 @@ public interface GameData {
 
     void addPlayer(SynchronousPlayer player);
 
-    void addPlayerQuestionInHistory(String playerName, String question);
+    void addPlayerQuestionInHistory(String playerId, String playerName, String question);
 
-    void savePlayersAnswer(String playerName, PlayersAnswer answer);
+    PlayersAnswer savePlayersAnswer(String id, String playerName, PlayersAnswer answer);
 
     void addPlayerAnswersInHistory();
 
@@ -55,4 +55,5 @@ public interface GameData {
 
     void removeAllPlayers();
 
+    SynchronousPlayer currentTurnPlayer();
 }

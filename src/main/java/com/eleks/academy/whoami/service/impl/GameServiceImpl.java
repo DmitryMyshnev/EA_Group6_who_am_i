@@ -6,11 +6,9 @@ import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.GameException;
 import com.eleks.academy.whoami.core.impl.PersistentGame;
 import com.eleks.academy.whoami.core.impl.PersistentPlayer;
-import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.request.PlayersAnswer;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
-import com.eleks.academy.whoami.model.response.TurnDetail;
 import com.eleks.academy.whoami.repository.GameRepository;
 import com.eleks.academy.whoami.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -45,11 +43,11 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<GameDetails> quickGame(String playerId, int maxPlayer) {
-        var synchronousGame = this.gameRepository.findAllAvailable(playerId)
+    public Optional<GameDetails> quickGame(String player) {
+        var synchronousGame = this.gameRepository.findAllAvailable(player)
                 .findFirst()
-                .map(game -> game.enrollToGame(new PersistentPlayer(null, playerId)))
-                .orElseGet(() -> this.gameRepository.save(new PersistentGame(playerId, maxPlayer, uuidGenerator)));
+                .map(game -> game.enrollToGame(new PersistentPlayer(player, uuidGenerator.generateId().toString())))
+                .orElseGet(() -> this.gameRepository.save(new PersistentGame(player, 4, uuidGenerator)));
 
         var gameDetails = GameDetails.of(synchronousGame);
         return Optional.of(gameDetails);
@@ -69,13 +67,13 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void suggestCharacter(String id, String playerId, CharacterSuggestion character) {
+    public void suggestCharacter(String id, String player, String character) {
         this.findGame(id)
                 .filter(state -> state.getStatus() == GameState.SUGGESTING_CHARACTER)
                 .or(() -> {
                     throw new GameException(NOT_AVAILABLE);
                 })
-                .ifPresent(game -> game.setCharacter(playerId, character.getName(), character.getCharacter()));
+                .ifPresent(game -> game.setCharacter(player, character));
     }
 
     @Override
@@ -85,20 +83,23 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<SynchronousPlayer> renamePlayer(String id, String oldName, String newName) {
-        var currentGame = this.findGame(id);
-        var synchronousPlayer = findPlayer(id, oldName);
+    public Optional<SynchronousPlayer> renamePlayer(String gameId, String oldName, String newName) {
+        var currentGame = this.findGame(gameId);
+        var synchronousPlayer = findPlayer(gameId, oldName);
         currentGame
                 .filter(game -> game.getStatus().equals(GameState.SUGGESTING_CHARACTER))
                 .or(() -> {
                     throw new GameException(NOT_AVAILABLE);
                 })
                 .map(SynchronousGame::getPlayersInGame)
-                .ifPresent(players -> players.stream()
-                        .filter(f -> !f.getName().equals(newName))
-                        .findFirst()
-                        .orElseThrow(() -> new GameException("Player with name '" + newName + "' already exist")
-                        ));
+                .ifPresent(players -> players.stream().
+                        filter(f -> !f.getName().equals(oldName))
+                        .forEach(player -> {
+                            if (player.getName().equals(newName)) {
+                                throw new GameException("Player with name '" + newName + "' already exist");
+                            }
+                        })
+                );
         return Optional.of(synchronousPlayer)
                 .map(player -> player.setName(newName));
     }
@@ -154,18 +155,15 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public Optional<TurnDetail> getCurrentTurn(String gameId, String playerId) {
-        var game = findGame(gameId).orElse(null);
-        var currentTurn = this.findGame(gameId)
-                .map(SynchronousGame::getCurrentTurn)
-                .orElse(null);
-
-
-        var turnPlayer = game.findPlayer(currentTurn).get();
-
-        return Optional.of(TurnDetail.builder()
-                .currentPlayer(turnPlayer)
-                .players(game.getPlayersInGameWithState()).build());
+    public void guessingCharacter(String id, String player, String message) {
+        var currentGame = this.findGame(id);
+        var currentPlayer = findPlayer(id, player);
+        currentGame
+                .filter(game -> game.getStatus().equals(GameState.PROCESSING_QUESTION))
+                .or(() -> {
+                    throw new GameException(NOT_AVAILABLE);
+                })
+                .ifPresent(game -> game.guessCharacter(currentPlayer, message));
     }
 
     private Optional<SynchronousGame> findGame(String id) {

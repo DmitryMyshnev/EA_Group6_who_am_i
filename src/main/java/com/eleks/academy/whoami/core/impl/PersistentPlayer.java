@@ -20,6 +20,8 @@ public class PersistentPlayer implements SynchronousPlayer {
     @JsonIgnore
     private boolean guessing;
     @JsonIgnore
+    private boolean isLeft;
+    @JsonIgnore
     private final Queue<String> answerQueue = new ConcurrentLinkedQueue<>();
 
     public PersistentPlayer(String name, String id) {
@@ -60,6 +62,11 @@ public class PersistentPlayer implements SynchronousPlayer {
     }
 
     @Override
+    public void markAsLeft() {
+        this.isLeft = true;
+    }
+
+    @Override
     @JsonIgnore
     public CompletableFuture<String> getCurrentQuestion(long limit, TimeUnit unit) {
         return CompletableFuture
@@ -81,6 +88,9 @@ public class PersistentPlayer implements SynchronousPlayer {
         while (answerQueue.isEmpty()) {
             if (System.currentTimeMillis() - currentTime >= unit.toMillis(limit)) {
                 throw new TimeoutException();
+            }
+            if (isLeft) {
+                return GameLoop.MISSING_QUESTION;
             }
         }
         return answerQueue.poll();

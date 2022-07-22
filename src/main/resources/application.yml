@@ -1,4 +1,52 @@
+
+spring:
+  profiles:
+    active: dev
 server:
   port: 8080
   servlet:
     context-path: /api/@api.version@
+
+---
+spring:
+  config:
+      activate:
+        on-profile: dev
+
+  datasource:
+    url: jdbc:h2:mem:who_am_i
+    username: admin
+    password:
+    driverClassName: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2
+      settings:
+         web-allow-others: true
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    generate-ddl: false
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+     enabled: true
+     change-log: classpath:db/changelog/changelog-root.xml
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USER}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+             enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+
+confirm-url: ${CONFIRM_URL}

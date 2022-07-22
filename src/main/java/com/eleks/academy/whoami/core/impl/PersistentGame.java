@@ -32,28 +32,29 @@ public class PersistentGame implements SynchronousGame {
     private final GameData gameData;
     public static final long SUGGESTING_CHARACTER_TIMEOUT = 120;
     public static final long WAITING_QUESTION_TIMEOUT = 60;
+    public static final long WAITING_GUESS_TIMEOUT = 60;
     public static final long WAITING_ANSWER_TIMEOUT = 20;
     private static final String TIME_OVER = "Time is over";
     private static final String NOT_AVAILABLE = "Not available";
 
     private GameState state;
 
-    public PersistentGame(String playerId, Integer maxPlayers, IdGenerator uuid) {
+    public PersistentGame(String hostPlayer, Integer maxPlayers, IdGenerator uuid) {
         this.id = uuid.generateId().toString();
         this.maxPlayers = maxPlayers;
         state = GameState.WAITING_FOR_PLAYER;
         gameData = new GameDataImpl();
-        var persistentPlayer = new PersistentPlayer(null, playerId);
+        var persistentPlayer = new PersistentPlayer(hostPlayer, uuid.generateId().toString());
         gameData.addPlayer(persistentPlayer);
     }
 
     @Override
-    public Optional<SynchronousPlayer> findPlayer(String playerId) {
+    public Optional<SynchronousPlayer> findPlayer(String player) {
         turnLock.lock();
         try {
             return gameData.allPlayers()
                     .stream()
-                    .filter(existingPlayer -> existingPlayer.getId().equals(playerId))
+                    .filter(existingPlayer -> existingPlayer.getName().equals(player))
                     .findFirst();
         } finally {
             turnLock.unlock();
@@ -71,7 +72,7 @@ public class PersistentGame implements SynchronousGame {
         try {
             gameData.allPlayers()
                     .stream()
-                    .filter(newPlayer -> newPlayer.getId().equals(player.getId()))
+                    .filter(newPlayer -> newPlayer.getName().equals(player.getName()))
                     .findFirst()
                     .ifPresent(m -> {
                         throw new GameException("Player already exist");
@@ -112,12 +113,12 @@ public class PersistentGame implements SynchronousGame {
     }
 
     @Override
-    public void setCharacter(String playerId, String name, String character) {
+    public void setCharacter(String player, String character) {
         turnLock.lock();
         try {
-            findPlayer(playerId)
+            findPlayer(player)
                     .or(() -> {
-                        throw new GameException("Player '" + playerId + "' is not found");
+                        throw new GameException("Player '" + player + "' is not found");
                     })
                     .filter(existingPlayer -> !gameData.isContainCharacter(existingPlayer.getId()))
                     .or(() -> {
@@ -129,11 +130,10 @@ public class PersistentGame implements SynchronousGame {
                         throw new GameException(TIME_OVER);
                     })
                     .ifPresent(synchronousPlayer -> {
-                        synchronousPlayer.setName(name);
                         gameData.putCharacter(synchronousPlayer.getId(), character);
-                        gameData.updatePlayerState(playerId, PlayerState.READY);
-                        if (gameData.availableCharactersSize() == gameData.allPlayers().size()) {
-                            this.start();
+                        gameData.updatePlayerState(synchronousPlayer.getId(), PlayerState.READY);
+                        if (gameData.availableCharactersSize() == maxPlayers) {
+                            state = GameState.READY_TO_START;
                         }
                     });
         } finally {
@@ -160,15 +160,29 @@ public class PersistentGame implements SynchronousGame {
         hasCorrectState(player, ASKING)
                 .filter(timer -> isTimeOut(gameData.getInitialTime(), WAITING_QUESTION_TIMEOUT))
                 .or(() -> {
-                    gameData.updatePlayerState(id, LOSER);
                     throw new GameException(TIME_OVER);
                 })
                 .ifPresent(synchronousPlayer -> synchronousPlayer.setAnswer(message, false));
     }
 
     @Override
+    public void guessCharacter(SynchronousPlayer player, String message) {
+        hasCorrectState(player, ASKING)
+                .filter(timer -> isTimeOut(gameData.getInitialTime(), WAITING_GUESS_TIMEOUT))
+                .or(() -> {
+                    gameData.updatePlayerState(id, LOSER);
+                    throw new GameException(TIME_OVER);
+                })
+                .ifPresent(synchronousPlayer -> synchronousPlayer.setAnswer(message, true));
+    }
+
+    @Override
     public void answerQuestion(SynchronousPlayer player, PlayersAnswer answer) {
         turnLock.lock();
+        var currentTurn = gameData.currentTurnPlayer();
+        if (currentTurn.isGuessing() && answer.equals(PlayersAnswer.NOT_SURE)) {
+            throw new GameException(NOT_AVAILABLE);
+        }
         var playerId = player.getId();
         try {
             hasCorrectState(player, ANSWERING)
@@ -176,7 +190,6 @@ public class PersistentGame implements SynchronousGame {
                     .or(() -> {
                         var counter = gameData.getInactivityCounter(playerId);
                         if (counter == 3) {
-                            gameData.updatePlayerState(id, LOSER);
                             return Optional.empty();
                         }
                         gameData.incrementInactivityCounter(playerId);
@@ -190,7 +203,6 @@ public class PersistentGame implements SynchronousGame {
             turnLock.unlock();
         }
     }
-
 
     @Override
     public History getHistory() {
@@ -213,10 +225,13 @@ public class PersistentGame implements SynchronousGame {
     @Override
     public SynchronousGame leaveGame(String player) {
         turnLock.lock();
+        List<SynchronousPlayer> players = getPlayersInGame();
         try {
-            findPlayer(player).ifPresent(gameData::removePlayer);
-            if (gameData.allPlayers().size() < 2 && isPreparingStage()) {
+            if (isPreparingStage()) {
+                players.clear();
                 state = GameState.FINISHED;
+            } else {
+                findPlayer(player).ifPresent(SynchronousPlayer::markAsLeft);
             }
             return this;
         } finally {
@@ -224,17 +239,7 @@ public class PersistentGame implements SynchronousGame {
         }
     }
 
-    @Override
-    public String getCurrentTurn() {
-        return gameData.getPlayersWithState().stream()
-                .filter(pl -> pl.getState().equals(ASKING))
-                .findFirst()
-                .map(PlayersWithState::getPlayer)
-                .map(SynchronousPlayer::getId)
-                .orElse(null);
-    }
-
     private boolean isPreparingStage() {
-        return state == GameState.SUGGESTING_CHARACTER;
+        return state == GameState.WAITING_FOR_PLAYER || state == GameState.SUGGESTING_CHARACTER;
     }
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="4" author="Dmytro Mishnev">
+      <dropPrimaryKey tableName="registration_token" constraintName="token"/>
+    </changeSet>
+
+    <changeSet id="5" author="Dmytro Mishnev">
+        <addColumn tableName="registration_token">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <modifyDataType tableName="registration_token" columnName="create_time" newDataType="timestamp"/>
+    </changeSet>
+
+    <changeSet id="6" author="Dmytro Mishnev">
+        <addPrimaryKey tableName="registration_token" columnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

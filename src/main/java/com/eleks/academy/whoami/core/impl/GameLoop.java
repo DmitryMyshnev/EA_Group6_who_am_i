@@ -29,9 +29,11 @@ public class GameLoop implements Game {
     @Override
     public Future<GameState> play() {
         boolean status = true;
+        String previousPlayerId = "";
         while (status) {
+            previousPlayerId = turn.getGuesser().getId();
             boolean turnResult = this.makeTurn();
-            if(this.isFinished()){
+            if (this.isFinished()) {
                 break;
             }
             while (turnResult) {
@@ -40,6 +42,11 @@ public class GameLoop implements Game {
             var synchronousPlayer = turn.changeTurn();
             gameData.markAnsweringStateExceptCurrentTurnPlayer(synchronousPlayer.getId());
             status = !this.isFinished();
+        }
+        if (gameData.getPlayerState(previousPlayerId).equals(WINNER)) {
+            gameData.updatePlayerState(turn.getGuesser().getId(), LOSER);
+        } else {
+            gameData.updatePlayerState(turn.getGuesser().getId(), WINNER);
         }
         return CompletableFuture.completedFuture(GameState.FINISHED);
     }
@@ -64,7 +71,7 @@ public class GameLoop implements Game {
             return false;
         }
 
-        gameData.addPlayerQuestionInHistory(currentGuesser.getName(), question);
+        gameData.addPlayerQuestionInHistory(currentGuesser.getId(), currentGuesser.getName(), question);
         gameData.setInitialTime();
         var answers = turn.getOtherPlayers()
                 .parallelStream()
@@ -72,16 +79,17 @@ public class GameLoop implements Game {
                         .handle((message, exception) -> {
                             var playerId = player.getId();
                             if (exception != null) {
-                                gameData.savePlayersAnswer(player.getName(), PlayersAnswer.NOT_SURE);
                                 gameData.incrementInactivityCounter(playerId);
                                 if (gameData.getInactivityCounter(playerId) == MAX_NUMBER_COUNT_MISSING_ANSWER) {
                                     gameData.removePlayer(player);
                                     gameData.updatePlayerState(playerId, LOSER);
+                                } else if (currentGuesser.isGuessing()) {
+                                    return NO_ANSWER;
                                 }
-                                return PlayersAnswer.NOT_SURE;
+                                return gameData.savePlayersAnswer(player.getId(), player.getName(), NOT_SURE);
                             }
                             gameData.clearInactivityCounter(playerId);
-                            gameData.savePlayersAnswer(player.getName(), message);
+                            gameData.savePlayersAnswer(player.getId(), player.getName(), message);
                             return message;
                         }).join()
                 ).toList();

@@ -46,13 +46,14 @@ public class GameDataImpl implements GameData {
     }
 
     @Override
-    public void savePlayersAnswer(String playerName, PlayersAnswer answer) {
-        this.playersAnswerQueue.add(new AnsweringPlayer(playerName, answer));
+    public PlayersAnswer savePlayersAnswer(String id, String playerName, PlayersAnswer answer) {
+        this.playersAnswerQueue.add(new AnsweringPlayer(id, playerName, answer));
+        return answer;
     }
 
     @Override
-    public void addPlayerQuestionInHistory(String playerName, String question) {
-        this.historyAnswers.addNewEntry(new Entry(playerName, question));
+    public void addPlayerQuestionInHistory(String playerId, String playerName, String question) {
+        this.historyAnswers.addNewEntry(new Entry(playerId, playerName, question));
     }
 
     @Override
@@ -80,6 +81,15 @@ public class GameDataImpl implements GameData {
     @Override
     public void removeAllPlayers() {
         this.players.clear();
+    }
+
+    @Override
+    public SynchronousPlayer currentTurnPlayer() {
+        return playersWithStates.stream()
+                .filter(player -> player.getState().equals(ASKING))
+                .findFirst()
+                .map(PlayersWithState::getPlayer)
+                .orElseThrow(() -> new GameException("Player not found"));
     }
 
     @Override
@@ -158,8 +168,7 @@ public class GameDataImpl implements GameData {
     @Override
     public void markAnsweringStateExceptCurrentTurnPlayer(String currentTurnPlayerId) {
         updatePlayerState(currentTurnPlayerId, ASKING);
-        this.playersWithStates.stream()
-                .map(PlayersWithState::getPlayer)
+        this.players.stream()
                 .map(Player::getId)
                 .filter(id -> !id.equals(currentTurnPlayerId))
                 .forEach(id -> updatePlayerState(id, ANSWERING));
@@ -171,10 +180,11 @@ public class GameDataImpl implements GameData {
                 .filter(playersWithState -> playersWithState.getPlayer().getId().equals(id))
                 .findFirst()
                 .map(PlayersWithState::getState)
-                .orElseThrow(()->{
-                    throw  new GameException("Player not found");
+                .orElseThrow(() -> {
+                    throw new GameException("Player not found");
                 });
     }
+
     @Override
     public List<PlayersWithState> getPlayersWithState() {
         return playersWithStates;

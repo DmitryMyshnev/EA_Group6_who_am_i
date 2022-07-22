@@ -1,10 +1,8 @@
 package com.eleks.academy.whoami.service;
 
 import com.eleks.academy.whoami.core.SynchronousPlayer;
-import com.eleks.academy.whoami.model.request.CharacterSuggestion;
 import com.eleks.academy.whoami.model.response.GameDetails;
 import com.eleks.academy.whoami.model.response.GameLight;
-import com.eleks.academy.whoami.model.response.TurnDetail;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,13 +11,13 @@ public interface GameService {
 
     Optional<SynchronousPlayer> enrollToGame(String id, String player);
 
-    Optional<GameDetails> quickGame(String player, int maxPlayer);
+    Optional<GameDetails> quickGame(String player);
 
     Optional<GameDetails> createGame(String player, Integer maxPlayer);
 
     List<GameLight> findAvailableGames(String player);
 
-    void suggestCharacter(String id, String player, CharacterSuggestion character);
+    void suggestCharacter(String id, String player, String character);
 
     Optional<GameDetails> findById(String id);
 
@@ -33,5 +31,5 @@ public interface GameService {
 
     Optional<GameDetails> leaveGame(String player, String id);
 
-    Optional<TurnDetail> getCurrentTurn(String gameId, String playerId);
+    void guessingCharacter(String id, String player, String message);
 }
