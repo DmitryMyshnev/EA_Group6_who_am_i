@@ -70,7 +70,9 @@ public class GameLoop implements Game {
             gameData.removePlayer(currentGuesser);
             return false;
         }
-
+        if (currentGuesser.isGuessing()) {
+            gameData.updatePlayerState(currentGuesser.getId(), GUESSING);
+        }
         gameData.addPlayerQuestionInHistory(currentGuesser.getId(), currentGuesser.getName(), question, currentGuesser.isGuessing());
         gameData.setInitialTime();
         var answers = turn.getOtherPlayers().parallelStream()

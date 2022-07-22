@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Predicate;
 
 
 import static com.eleks.academy.whoami.model.response.PlayerState.*;
@@ -71,10 +72,6 @@ public class GameDataImpl implements GameData {
     @Override
     public void removePlayer(SynchronousPlayer player) {
         this.players.remove(player);
-        this.playersWithStates.stream()
-                .filter(playersWithState -> playersWithState.getPlayer().equals(player))
-                .findFirst()
-                .ifPresent(playersWithStates::remove);
         this.characterMap.remove(player.getId());
     }
 
@@ -85,8 +82,10 @@ public class GameDataImpl implements GameData {
 
     @Override
     public SynchronousPlayer currentTurnPlayer() {
+        Predicate<PlayersWithState> asking = state -> state.getState().equals(ASKING);
+        Predicate<PlayersWithState> guessing = state -> state.getState().equals(GUESSING);
         return playersWithStates.stream()
-                .filter(player -> player.getState().equals(ASKING))
+                .filter(asking.or(guessing))
                 .findFirst()
                 .map(PlayersWithState::getPlayer)
                 .orElseThrow(() -> new GameException("Player not found"));
