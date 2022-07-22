@@ -2,6 +2,8 @@ package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
+import com.eleks.academy.whoami.db.exception.TokenException;
+import com.eleks.academy.whoami.db.exception.NotFoundUserException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.repository.RegistrationTokenRepository;
@@ -67,6 +69,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void confirmRegistration(CreateUserCommand command) {
         userRepository.findByEmail(command.getEmail())
                 .ifPresent(then -> {
@@ -94,7 +97,7 @@ public class UserServiceImpl implements UserService {
         var createTokenTime = Instant.now();
         var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         registrationTokenRepository.save(new RegistrationToken(token, createTokenTime));
-        var urlToken = confirmUrl + postfix + "/users/confirm?token=" + token;
+        var urlToken = generateUrl("/users/confirm?token=", token);
         String text = "Dear " + command.getName() + ", welcome WAI game.\n" +
                 "To activate your account please follow the link \n" +
                 urlToken +
@@ -103,10 +106,48 @@ public class UserServiceImpl implements UserService {
         emailService.sendSimpleMessage(command.getEmail(), "Confirm registration", text);
     }
 
+    @Override
+    @Transactional
+    public void sendMailRestorePassword(String email) {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundUserException("User is not found"));
+        var data = user.getName() + "|" + email;
+        var token = Base64.getEncoder().encodeToString(data.getBytes());
+        registrationTokenRepository.findByToken(token)
+                .ifPresent(tk -> tk.setCreateTime(Instant.now()));
+
+        var urlToken = generateUrl("/users/access?token=", token);
+        String text = "Dear Player, we`ve got a request to reset your WAI password.\n" +
+                urlToken + "\n" +
+                "If you ignore this message, your password will not be changed";
+        emailService.sendSimpleMessage(email, "Confirm restore password", text);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String newPassword, String confirmToken) {
+        var email = getEmailByToken(confirmToken);
+        registrationTokenRepository.findByToken(confirmToken)
+                .or(() -> {
+                    throw new TokenException("Token is not found");
+                })
+                .map(RegistrationToken::getCreateTime)
+                .filter(savedInstant -> Instant.now().compareTo(savedInstant.plus(1, ChronoUnit.DAYS)) < 0)
+                .or(() -> {
+                    throw new TokenException("Token is not actual");
+                })
+                .flatMap(then -> userRepository.findByEmail(email))
+                .ifPresent(user -> user.setPassword(encoder.encode(newPassword)));
+    }
+
     private String getEmailByToken(String token) {
         return new String(Base64
                 .getDecoder()
                 .decode(token))
                 .split("\\|")[1];
+    }
+
+    private String generateUrl(String path, String token) {
+        return confirmUrl + postfix + path + token;
     }
 }

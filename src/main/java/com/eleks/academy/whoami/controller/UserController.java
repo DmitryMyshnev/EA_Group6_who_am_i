@@ -2,7 +2,10 @@ package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommandDto;
 import com.eleks.academy.whoami.db.dto.UserDto;
+import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
 import com.eleks.academy.whoami.db.mapper.UserMapper;
+import com.eleks.academy.whoami.model.request.EmailRequest;
+import com.eleks.academy.whoami.model.request.RestorePasswordCredential;
 import com.eleks.academy.whoami.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,8 +55,26 @@ public class UserController {
 
     @GetMapping("{id}")
     @Transactional
-    public String findBuId(@PathVariable Long id){
+    public String findBuId(@PathVariable Long id) {
         return "Ok";
     }
 
+    @GetMapping("/password-restore")
+    @Transactional
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void sendMailRestorePassword(@RequestBody @Valid EmailRequest emailRequest) {
+        userService.sendMailRestorePassword(emailRequest.getEmail());
+    }
+
+    @PutMapping("/access")
+    @Transactional
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void restorePassword(@RequestBody @Valid RestorePasswordCredential credential) {
+        if(!credential.getNewPassword().equals(credential.getConfirmPassword())){
+            throw new NotMatchesPasswordException("Passwords do not match");
+        }
+        userService.changePassword(
+                credential.getNewPassword(),
+                credential.getConfirmToken());
+    }
 }

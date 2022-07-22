@@ -9,4 +9,8 @@ public interface UserService extends UserDetailsService {
     User save(String token);
 
     void confirmRegistration(CreateUserCommand command);
+
+    void sendMailRestorePassword(String email);
+
+    void changePassword(String newPassword, String confirmToken);
 }
