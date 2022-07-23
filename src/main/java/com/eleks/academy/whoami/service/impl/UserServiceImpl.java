@@ -3,9 +3,8 @@ package com.eleks.academy.whoami.service.impl;
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
-import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
+import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
@@ -174,7 +173,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(ChangePasswordCredential credential, Long id) {
         if (!credential.getNewPassword().equals(credential.getConfirmPassword())) {
-            throw new NotMatchesPasswordException("Passwords do not match");
+            throw new ChangePasswordException("Passwords do not match");
         }
 
         userRepository.findById(id)
