@@ -2,6 +2,7 @@ package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
+import com.eleks.academy.whoami.db.exception.UserNotFoundException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.repository.RegistrationTokenRepository;
@@ -97,6 +98,13 @@ public class UserServiceImpl implements UserService {
                 urlToken +
                 "\n\nLink is valid for 30 min from the mail receiving time";
         emailService.sendSimpleMessage(command.getEmail(), "Confirm registration", text);
+    }
+
+    @Override
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " is not found"));
+
     }
 
     private String getEmailByToken(String token) {

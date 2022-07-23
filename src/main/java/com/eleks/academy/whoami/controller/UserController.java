@@ -51,8 +51,12 @@ public class UserController {
 
     @GetMapping("{id}")
     @Transactional
-    public String findBuId(@PathVariable Long id){
-        return "Ok";
+    public ResponseEntity<UserDto> findById(@PathVariable Long id) {
+        var user = userService.findById(id);
+        var userDto = userMapper.toDTO(user);
+        return Optional.of(userDto)
+                .map(dto -> ResponseEntity.ok().body(dto))
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
 }

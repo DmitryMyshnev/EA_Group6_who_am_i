@@ -9,4 +9,6 @@ public interface UserService extends UserDetailsService {
     User save(String token);
 
     void confirmRegistration(CreateUserCommand command);
+
+    User findById(Long id);
 }
