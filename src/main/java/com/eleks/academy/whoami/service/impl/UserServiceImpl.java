@@ -1,11 +1,14 @@
 package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
+import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
+import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
 import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
+import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,7 +133,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePassword(String newPassword, String confirmToken) {
+    public void restorePassword(String newPassword, String confirmToken) {
         var email = getEmailByToken(confirmToken);
         tokenRepository.findByToken(confirmToken)
                 .or(() -> {
@@ -162,6 +166,26 @@ public class UserServiceImpl implements UserService {
                     return user;
                 })
                 .orElseThrow(NotFoundUserException::new);
+    }
+
+    @Override
+    public void changePassword(ChangePasswordCredential credential, Long id) {
+        if (!credential.getNewPassword().equals(credential.getConfirmPassword())) {
+            throw new NotMatchesPasswordException("Passwords do not match");
+        }
+
+        userRepository.findById(id)
+                .or(() -> {
+                    throw new NotFoundUserException();
+                })
+                .filter(user -> !BCrypt.checkpw(credential.getNewPassword(), user.getPassword()))
+                .or(() -> {
+                    throw new ChangePasswordException("New password matches the old");
+                })
+                .map(user -> {
+                    user.setPassword(encoder.encode(credential.getNewPassword()));
+                    return user;
+                });
     }
 
     private String getEmailByToken(String token) {
