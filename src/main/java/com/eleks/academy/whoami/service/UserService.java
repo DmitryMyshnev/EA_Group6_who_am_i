@@ -2,6 +2,7 @@ package com.eleks.academy.whoami.service;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.model.User;
+import com.eleks.academy.whoami.model.request.UsernameRequest;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
@@ -15,4 +16,6 @@ public interface UserService extends UserDetailsService {
     void changePassword(String newPassword, String confirmToken);
 
     void logout(String token);
+
+    User changeUsername(Long id, String username);
 }

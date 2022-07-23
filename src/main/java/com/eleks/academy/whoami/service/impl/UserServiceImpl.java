@@ -152,6 +152,18 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(refreshTokenRepository::deleteByUser);
     }
 
+
+    @Override
+    @Transactional
+    public User changeUsername(Long id, String username) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    user.setName(username);
+                    return user;
+                })
+                .orElseThrow(NotFoundUserException::new);
+    }
+
     private String getEmailByToken(String token) {
         String[] data;
         try {

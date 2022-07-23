@@ -29,6 +29,7 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     public static final String FAILED_CREATE_ACCOUNT = "Failed to create a user";
     public static final String FAILED_SEND_MAIL = "Failed to send a mail";
     public static final String FAILED_RESTORE_PASSWORD = "Failed to restore password";
+    public static final String USER_NOT_FOUND = "User is not found";
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -63,7 +64,7 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(NotFoundUserException.class)
     public ResponseEntity<Object> handleNotFoundUserException(NotFoundUserException e) {
         String message = e.getMessage();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(USER_NOT_FOUND, message == null ? null : List.of(message)));
     }
 
     @ExceptionHandler(TokenException.class)
