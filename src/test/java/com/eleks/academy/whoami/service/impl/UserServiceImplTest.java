@@ -6,10 +6,12 @@ import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.repository.RegistrationTokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
 import com.eleks.academy.whoami.service.EmailService;
+import com.eleks.academy.whoami.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mail.MailSendException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -25,14 +27,15 @@ class UserServiceImplTest {
     private UserRepository userRepository;
     private RegistrationTokenRepository tokenRepository;
     private EmailService emailService;
-    private UserServiceImpl userService;
+    private UserService userService;
 
     @BeforeEach
     void init() {
         userRepository = Mockito.mock(UserRepository.class);
         tokenRepository = Mockito.mock(RegistrationTokenRepository.class);
         emailService = Mockito.mock(EmailService.class);
-        userService = new UserServiceImpl(userRepository, tokenRepository, emailService);
+        PasswordEncoder   encoder = Mockito.mock(PasswordEncoder.class);
+        userService = new UserServiceImpl(userRepository, tokenRepository, emailService, encoder);
     }
 
     @Test
