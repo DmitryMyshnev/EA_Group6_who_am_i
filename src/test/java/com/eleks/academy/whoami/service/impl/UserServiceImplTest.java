@@ -33,8 +33,6 @@ class UserServiceImplTest {
     private TokenRepository tokenRepository;
     private EmailService emailService;
     private UserService userService;
-    private RefreshTokenRepository refreshTokenRepository;
-    private Jwt jwt;
 
     @BeforeEach
     void init() {
@@ -42,8 +40,8 @@ class UserServiceImplTest {
         tokenRepository = Mockito.mock(TokenRepository.class);
         emailService = Mockito.mock(EmailService.class);
         PasswordEncoder encoder = Mockito.mock(PasswordEncoder.class);
-        refreshTokenRepository = Mockito.mock(RefreshTokenRepository.class);
-        jwt = Mockito.mock(Jwt.class);
+        RefreshTokenRepository refreshTokenRepository = Mockito.mock(RefreshTokenRepository.class);
+        Jwt jwt = Mockito.mock(Jwt.class);
         userService = new UserServiceImpl(userRepository, tokenRepository, emailService, encoder, jwt, refreshTokenRepository);
     }
 
