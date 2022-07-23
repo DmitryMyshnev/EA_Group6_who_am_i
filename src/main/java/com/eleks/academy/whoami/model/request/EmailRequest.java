@@ -17,4 +17,5 @@ public class EmailRequest {
     @NotNull
     @NotBlank
     private String email;
+
 }
