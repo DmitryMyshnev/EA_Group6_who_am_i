@@ -4,9 +4,8 @@ import com.eleks.academy.whoami.controller.UserController;
 import com.eleks.academy.whoami.core.exception.ErrorResponse;
 import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
-import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
+import com.eleks.academy.whoami.db.exception.TokenException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,12 +70,6 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(TokenException.class)
     public ResponseEntity<Object> handleExpirationTokenException(TokenException e) {
-        String message = e.getMessage();
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
-    }
-
-    @ExceptionHandler(NotMatchesPasswordException.class)
-    public ResponseEntity<Object> handleNotMatchesPasswordException(NotMatchesPasswordException e) {
         String message = e.getMessage();
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
     }

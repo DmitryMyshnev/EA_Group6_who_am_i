@@ -2,7 +2,6 @@ package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommandDto;
 import com.eleks.academy.whoami.db.dto.UserDto;
-import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
 import com.eleks.academy.whoami.db.mapper.UserMapper;
 import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
 import com.eleks.academy.whoami.model.request.EmailRequest;
@@ -71,9 +70,7 @@ public class UserController {
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void restorePassword(@RequestBody @Valid RestorePasswordCredential credential) {
-        if (!credential.getNewPassword().equals(credential.getConfirmPassword())) {
-            throw new NotMatchesPasswordException("Passwords do not match");
-        }
+
         userService.restorePassword(
                 credential.getNewPassword(),
                 credential.getConfirmToken());
