@@ -1,10 +1,14 @@
 package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
+import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
+import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
 import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
+import com.eleks.academy.whoami.db.model.User;
+import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
@@ -22,6 +26,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -99,14 +104,22 @@ class UserServiceImplTest {
     }
 
     @Test
-    void givenInvalidToken_changePassword_shouldBeThrowException() {
+    void givenInvalidToken_restorePassword_shouldBeThrowException() {
         assertThrows(TokenException.class, () -> userService.restorePassword("123", "AEWq"));
     }
 
     @Test
-    void givenNotExistToken_changePassword_shouldBeThrowException() {
+    void givenNotExistToken_restorePassword_shouldBeThrowException() {
         when(tokenRepository.findByToken(anyString())).thenThrow(TokenException.class);
 
         assertThrows(TokenException.class, () -> userService.restorePassword("123", "AEW|eq"));
     }
+
+    @Test
+    void givenNotMatchesPassword_changePassword_shouldBeThrowException() {
+        var credential = new ChangePasswordCredential("123", "456", "4");
+
+        assertThrows(ChangePasswordException.class, () -> userService.changePassword(credential, 1L));
+    }
+
 }
