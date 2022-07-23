@@ -12,5 +12,6 @@ public interface UserService extends UserDetailsService {
 
     void sendMailRestorePassword(String email);
 
-    void changePassword(String newPassword, String confirmToken);
+    void restorePassword(String newPassword, String confirmToken);
+
 }

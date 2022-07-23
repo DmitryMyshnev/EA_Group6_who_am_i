@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
+import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
 import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
@@ -125,7 +126,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePassword(String newPassword, String confirmToken) {
+    public void restorePassword(String newPassword, String confirmToken) {
+        if (!newPassword.equals(confirmToken)) {
+            throw new ChangePasswordException("Passwords do not match");
+        }
         var email = getEmailByToken(confirmToken);
         tokenRepository.findByToken(confirmToken)
                 .or(() -> {

@@ -73,7 +73,7 @@ public class UserController {
         if(!credential.getNewPassword().equals(credential.getConfirmPassword())){
             throw new NotMatchesPasswordException("Passwords do not match");
         }
-        userService.changePassword(
+        userService.restorePassword(
                 credential.getNewPassword(),
                 credential.getConfirmToken());
     }
