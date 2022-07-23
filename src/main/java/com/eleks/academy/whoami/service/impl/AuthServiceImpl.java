@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.eleks.academy.whoami.security.AuthTokenFilter.BEARER;
 import static java.lang.Boolean.FALSE;
@@ -36,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private long accessTokenExpiration;
 
     @Override
+    @Transactional
     public JwtResponse authenticate(CredentialRequest request) {
         var user = findByEmailAndPassword(request.getEmail(), request.getPassword());
         var accessToken = jwt.generateToken(user.getEmail(), accessTokenExpiration);
@@ -51,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public RefreshTokenResponse refreshToken(RefreshTokenCommandDto refreshTokenCommandDto) {
         return refreshTokenRepository.findByToken(refreshTokenCommandDto.getRefreshToken())
                 .filter(refreshTokenService::verifyToken)

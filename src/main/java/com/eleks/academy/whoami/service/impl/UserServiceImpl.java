@@ -6,8 +6,10 @@ import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
+import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
+import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,8 @@ public class UserServiceImpl implements UserService {
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
     private final PasswordEncoder encoder;
+    private final Jwt jwt;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${confirm-url}")
     private String confirmUrl;
@@ -138,6 +142,14 @@ public class UserServiceImpl implements UserService {
                 })
                 .flatMap(then -> userRepository.findByEmail(email))
                 .ifPresent(user -> user.setPassword(encoder.encode(newPassword)));
+    }
+
+    @Override
+    @Transactional
+    public void logout(String token) {
+        var email = jwt.getEmailFromJwtToken(token);
+        userRepository.findByEmail(email)
+                .ifPresent(refreshTokenRepository::deleteByUser);
     }
 
     private String getEmailByToken(String token) {
