@@ -42,6 +42,7 @@ public class LobbyController {
     }
 
     @GetMapping("/themes")
+    @Transactional
     public ResponseEntity<List<ThemeDto>> findAllThemes() {
         return lobbyService.findAllThemes()
                 .stream()
@@ -50,6 +51,7 @@ public class LobbyController {
     }
 
     @GetMapping("/{id}/users")
+    @Transactional
     public ResponseEntity<List<LobbyUserDto>> finAllUsersInLobby(@PathVariable Long id) {
         return lobbyService.findAllUsersByLobbyId(id)
                 .stream()

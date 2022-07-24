@@ -14,6 +14,7 @@ import com.eleks.academy.whoami.service.LobbyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class LobbyServiceImpl implements LobbyService {
     private final LobbyAndUserRepository lobbyAndUserRepository;
 
     @Override
+    @Transactional
     public Lobby createLobby(CreateLobbyCommand command) {
         return themeRepository.findByName(command.getTheme())
                 .map(theme -> userRepository.findById(command.getUserId())
@@ -59,11 +61,13 @@ public class LobbyServiceImpl implements LobbyService {
     }
 
     @Override
+    @Transactional
     public List<Theme> findAllThemes() {
         return themeRepository.findAll();
     }
 
     @Override
+    @Transactional
     public List<User> findAllUsersByLobbyId(Long lobbyId) {
         return lobbyRepository.findAllUsersByLobbyId(lobbyId);
     }
