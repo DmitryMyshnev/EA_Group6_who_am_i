@@ -12,4 +12,5 @@
     <include file="db/changelog/db.change_add_table_themes-changelog.xml"/>
     <include file="db/changelog/db.change_insert_table_themes-changelog.xml"/>
     <include file="db/changelog/db.change_add_table_lobbies-changelog.xml"/>
+    <include file="db/changelog/db.change_add_table_lobby_user-changelog.xml"/>
 </databaseChangeLog>

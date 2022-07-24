@@ -3,7 +3,10 @@ package com.eleks.academy.whoami.service.impl;
 import com.eleks.academy.whoami.db.dto.CreateLobbyCommand;
 import com.eleks.academy.whoami.db.exception.CreateLobbyException;
 import com.eleks.academy.whoami.db.model.Lobby;
+import com.eleks.academy.whoami.db.model.LobbyAndUser;
 import com.eleks.academy.whoami.db.model.Theme;
+import com.eleks.academy.whoami.db.model.User;
+import com.eleks.academy.whoami.repository.LobbyAndUserRepository;
 import com.eleks.academy.whoami.repository.LobbyRepository;
 import com.eleks.academy.whoami.repository.ThemeRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
@@ -24,6 +27,7 @@ public class LobbyServiceImpl implements LobbyService {
     private final ThemeRepository themeRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
+    private final LobbyAndUserRepository lobbyAndUserRepository;
 
     @Override
     public Lobby createLobby(CreateLobbyCommand command) {
@@ -42,7 +46,13 @@ public class LobbyServiceImpl implements LobbyService {
                                 }
                                 lobby.setPassword(encoder.encode(command.getPassword()));
                             }
-                            return lobbyRepository.save(lobby);
+                            var lobbyEntity = lobbyRepository.save(lobby);
+                            var lobbyAndUser = LobbyAndUser.builder()
+                                    .lobbyId(lobbyEntity.getId())
+                                    .userId(user.getId())
+                                    .build();
+                            lobbyAndUserRepository.save(lobbyAndUser);
+                            return lobbyEntity;
                         })
                         .orElseThrow(() -> new CreateLobbyException("User is not found")))
                 .orElseThrow(() -> new CreateLobbyException("Theme '" + command.getTheme() + "' is not found"));
@@ -51,5 +61,10 @@ public class LobbyServiceImpl implements LobbyService {
     @Override
     public List<Theme> findAllThemes() {
         return themeRepository.findAll();
+    }
+
+    @Override
+    public List<User> findAllUsersByLobbyId(Long lobbyId) {
+        return lobbyRepository.findAllUsersByLobbyId(lobbyId);
     }
 }

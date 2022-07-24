@@ -2,6 +2,7 @@ package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.db.dto.CreateLobbyCommandDto;
 import com.eleks.academy.whoami.db.dto.LobbyDto;
+import com.eleks.academy.whoami.db.dto.LobbyUserDto;
 import com.eleks.academy.whoami.db.dto.ThemeDto;
 import com.eleks.academy.whoami.db.mapper.LobbyMapper;
 import com.eleks.academy.whoami.db.mapper.ThemeMapper;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +46,14 @@ public class LobbyController {
         return lobbyService.findAllThemes()
                 .stream()
                 .map(themeMapper::toDto)
+                .collect(collectingAndThen(toList(), ResponseEntity::ok));
+    }
+
+    @GetMapping("/{id}/users")
+    public ResponseEntity<List<LobbyUserDto>> finAllUsersInLobby(@PathVariable Long id) {
+        return lobbyService.findAllUsersByLobbyId(id)
+                .stream()
+                .map(lobbyMapper::toDto)
                 .collect(collectingAndThen(toList(), ResponseEntity::ok));
     }
 }
