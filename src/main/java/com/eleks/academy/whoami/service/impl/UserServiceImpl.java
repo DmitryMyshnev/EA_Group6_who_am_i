@@ -97,7 +97,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         var createTokenTime = Instant.now();
 
-        var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         tokenRepository.save(new RegistrationToken(token, createTokenTime));
         var urlToken = generateUrl("/users/confirm?token=", token);
 

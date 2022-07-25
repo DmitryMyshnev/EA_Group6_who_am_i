@@ -59,7 +59,8 @@ public class UserController {
         var user = userService.findById(id);
         var userDto = userMapper.toDTO(user);
         return Optional.of(userDto)
-                .map(dto -> ResponseEntity.ok().body(dto))
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @GetMapping("/password-restore")
@@ -73,7 +74,7 @@ public class UserController {
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void restorePassword(@RequestBody @Valid RestorePasswordCredential credential) {
-        if(!credential.getNewPassword().equals(credential.getConfirmPassword())){
+        if (!credential.getNewPassword().equals(credential.getConfirmPassword())) {
             throw new NotMatchesPasswordException("Passwords do not match");
         }
         userService.restorePassword(
