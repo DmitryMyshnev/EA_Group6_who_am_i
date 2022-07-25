@@ -180,9 +180,13 @@ public class UserServiceImpl implements UserService {
                 .or(() -> {
                     throw new NotFoundUserException();
                 })
+                .filter(user -> BCrypt.checkpw(credential.getOldPassword(), user.getPassword()))
+                .or(() -> {
+                    throw new ChangePasswordException("Bad credential");
+                })
                 .filter(user -> !BCrypt.checkpw(credential.getNewPassword(), user.getPassword()))
                 .or(() -> {
-                    throw new ChangePasswordException("New password matches the old");
+                    throw new ChangePasswordException("Password is not valid");
                 })
                 .map(user -> {
                     user.setPassword(encoder.encode(credential.getNewPassword()));
