@@ -3,6 +3,7 @@ package com.eleks.academy.whoami.core.impl;
 import com.eleks.academy.whoami.core.SynchronousPlayer;
 import com.eleks.academy.whoami.core.exception.TimeoutException;
 import com.eleks.academy.whoami.model.request.PlayersAnswer;
+import com.eleks.academy.whoami.model.response.PlayerState;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
@@ -10,6 +11,11 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+
+import static com.eleks.academy.whoami.core.impl.GameLoop.MISSING_QUESTION;
+import static com.eleks.academy.whoami.model.request.PlayersAnswer.NO_ANSWER;
+import static com.eleks.academy.whoami.model.response.PlayerState.ANSWERING;
+import static com.eleks.academy.whoami.model.response.PlayerState.ASKING;
 
 public class PersistentPlayer implements SynchronousPlayer {
 
@@ -70,7 +76,7 @@ public class PersistentPlayer implements SynchronousPlayer {
     @JsonIgnore
     public CompletableFuture<String> getCurrentQuestion(long limit, TimeUnit unit) {
         return CompletableFuture
-                .supplyAsync(() -> waitAnswer(limit, unit));
+                .supplyAsync(() -> waitAnswer(limit, unit, ASKING));
     }
 
     @Override
@@ -78,19 +84,22 @@ public class PersistentPlayer implements SynchronousPlayer {
     public CompletableFuture<PlayersAnswer> getCurrentAnswer(long limit, TimeUnit unit) {
         return CompletableFuture
                 .supplyAsync(() -> {
-                    var answer = waitAnswer(limit, unit);
+                    var answer = waitAnswer(limit, unit, ANSWERING);
                     return PlayersAnswer.valueOf(answer);
                 });
     }
 
-    private String waitAnswer(long limit, TimeUnit unit) throws TimeoutException {
+    private String waitAnswer(long limit, TimeUnit unit, PlayerState state) throws TimeoutException {
         var currentTime = System.currentTimeMillis();
         while (answerQueue.isEmpty()) {
             if (System.currentTimeMillis() - currentTime >= unit.toMillis(limit)) {
                 throw new TimeoutException();
             }
             if (isLeft) {
-                return GameLoop.MISSING_QUESTION;
+                switch (state){
+                    case ASKING -> {return MISSING_QUESTION;}
+                    case ANSWERING -> {return NO_ANSWER.name();}
+                }
             }
         }
         return answerQueue.poll();

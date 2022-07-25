@@ -91,6 +91,11 @@ public class GameLoop implements Game {
                                 gameData.addPlayerAnswersInHistory();
                                 return answer;
                             }
+                            if(message.equals(NO_ANSWER)){
+                                gameData.removePlayer(player);
+                                gameData.updatePlayerState(playerId, LOSER);
+                                return message;
+                            }
                             gameData.clearInactivityCounter(playerId);
                             gameData.savePlayersAnswer(player.getId(), player.getName(), message);
                             gameData.addPlayerAnswersInHistory();
