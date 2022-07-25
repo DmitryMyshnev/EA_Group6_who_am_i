@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.service;
 
 import com.eleks.academy.whoami.db.dto.CreateLobbyCommand;
+import com.eleks.academy.whoami.db.dto.LobbyFilter;
 import com.eleks.academy.whoami.db.model.Lobby;
 import com.eleks.academy.whoami.db.model.Theme;
 import com.eleks.academy.whoami.db.model.User;
@@ -18,4 +19,6 @@ public interface LobbyService {
     List<Lobby> findAllLobbies();
 
     int countJoinPlayers(Long id);
+
+    List<Lobby> filter(LobbyFilter lobbyFilter);
 }

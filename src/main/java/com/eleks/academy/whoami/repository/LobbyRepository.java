@@ -13,4 +13,7 @@ public interface LobbyRepository extends JpaRepository<Lobby, Long> {
 
     @Query(value = "SELECT  u FROM Lobby l JOIN LobbyAndUser lu ON(lu.lobbyId = l.id) JOIN User u ON(u.id = lu.userId) WHERE l.id =?1")
     List<User> findAllUsersByLobbyId(Long lobbyId);
+
+    @Query("SELECT l FROM Lobby l JOIN Theme t ON(l.theme.id = t.id) WHERE t.name  IN ?1")
+    List<Lobby> findLobbyByThemeFilter(List<String> themeFilters);
 }

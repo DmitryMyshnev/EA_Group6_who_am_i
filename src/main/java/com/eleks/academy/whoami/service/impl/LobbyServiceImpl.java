@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateLobbyCommand;
+import com.eleks.academy.whoami.db.dto.LobbyFilter;
 import com.eleks.academy.whoami.db.exception.CreateLobbyException;
 import com.eleks.academy.whoami.db.model.Lobby;
 import com.eleks.academy.whoami.db.model.LobbyAndUser;
@@ -74,11 +75,19 @@ public class LobbyServiceImpl implements LobbyService {
 
     @Override
     public List<Lobby> findAllLobbies() {
-       return   lobbyRepository.findAll();
+        return lobbyRepository.findAll();
     }
 
     @Override
     public int countJoinPlayers(Long lobbyId) {
-      return   lobbyAndUserRepository.countByLobbyId(lobbyId);
+        return lobbyAndUserRepository.countByLobbyId(lobbyId);
+    }
+
+    @Override
+    public List<Lobby> filter(LobbyFilter lobbyFilter) {
+        if (lobbyFilter.getThemeFilters() != null && !lobbyFilter.getThemeFilters().isEmpty()) {
+           return lobbyRepository.findLobbyByThemeFilter(lobbyFilter.getThemeFilters());
+        }
+        return List.of();
     }
 }
