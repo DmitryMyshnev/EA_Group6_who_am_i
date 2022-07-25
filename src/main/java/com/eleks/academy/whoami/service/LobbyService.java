@@ -14,4 +14,8 @@ public interface LobbyService {
     List<Theme> findAllThemes();
 
     List<User> findAllUsersByLobbyId(Long lobbyId);
+
+    List<Lobby> findAllLobbies();
+
+    int countJoinPlayers(Long id);
 }

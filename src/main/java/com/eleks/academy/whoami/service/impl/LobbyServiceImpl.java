@@ -71,4 +71,14 @@ public class LobbyServiceImpl implements LobbyService {
     public List<User> findAllUsersByLobbyId(Long lobbyId) {
         return lobbyRepository.findAllUsersByLobbyId(lobbyId);
     }
+
+    @Override
+    public List<Lobby> findAllLobbies() {
+       return   lobbyRepository.findAll();
+    }
+
+    @Override
+    public int countJoinPlayers(Long lobbyId) {
+      return   lobbyAndUserRepository.countByLobbyId(lobbyId);
+    }
 }
