@@ -11,7 +11,6 @@ import com.eleks.academy.whoami.repository.UserRepository;
 import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -101,13 +100,13 @@ class UserServiceImplTest {
 
     @Test
     void givenInvalidToken_changePassword_shouldBeThrowException() {
-        assertThrows(TokenException.class, () -> userService.changePassword("123", "AEWq"));
+        assertThrows(TokenException.class, () -> userService.restorePassword("123", "AEWq"));
     }
 
     @Test
     void givenNotExistToken_changePassword_shouldBeThrowException() {
         when(tokenRepository.findByToken(anyString())).thenThrow(TokenException.class);
 
-        assertThrows(TokenException.class, () -> userService.changePassword("123", "AEW|eq"));
+        assertThrows(TokenException.class, () -> userService.restorePassword("123", "AEW|eq"));
     }
 }

@@ -10,9 +10,12 @@ public interface UserService extends UserDetailsService {
 
     void confirmRegistration(CreateUserCommand command);
 
+
     void sendMailRestorePassword(String email);
 
-    void changePassword(String newPassword, String confirmToken);
+    void restorePassword(String newPassword, String confirmToken);
+
+    User findById(Long id);
 
     void logout(String token);
 }

@@ -1,9 +1,12 @@
 package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
+import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
 import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
+import com.eleks.academy.whoami.db.exception.UserNotFoundException;
+
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
@@ -20,11 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -99,14 +100,14 @@ public class UserServiceImpl implements UserService {
                 .build();
         userRepository.save(user);
         var createTokenTime = Instant.now();
-        var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
         tokenRepository.save(new RegistrationToken(token, createTokenTime));
         var urlToken = generateUrl("/users/confirm?token=", token);
+
         String text = "Dear " + command.getName() + ", welcome WAI game.\n" +
                 "To activate your account please follow the link \n" +
                 urlToken +
-                "\n\nThis link is actual until: " +
-                formatter.format(Date.from(createTokenTime.plus(30, ChronoUnit.MINUTES)));
+                "\n\nLink is valid for 30 min from the mail receiving time";
         emailService.sendSimpleMessage(command.getEmail(), "Confirm registration", text);
     }
 
@@ -129,7 +130,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void changePassword(String newPassword, String confirmToken) {
+    public void restorePassword(String newPassword, String confirmToken) {
+        if (!newPassword.equals(confirmToken)) {
+            throw new ChangePasswordException("Passwords do not match");
+        }
         var email = getEmailByToken(confirmToken);
         tokenRepository.findByToken(confirmToken)
                 .or(() -> {
@@ -142,6 +146,13 @@ public class UserServiceImpl implements UserService {
                 })
                 .flatMap(then -> userRepository.findByEmail(email))
                 .ifPresent(user -> user.setPassword(encoder.encode(newPassword)));
+    }
+    
+    @Override
+    @Transactional
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " is not found"));
     }
 
     @Override

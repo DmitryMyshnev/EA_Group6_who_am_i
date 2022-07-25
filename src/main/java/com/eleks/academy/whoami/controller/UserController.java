@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,6 +58,18 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
+
+    @GetMapping("{id}")
+    @Transactional
+    public ResponseEntity<UserDto> findById(@PathVariable Long id) {
+        var user = userService.findById(id);
+        var userDto = userMapper.toDTO(user);
+        return Optional.of(userDto)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+
     @GetMapping("/password-restore")
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -71,7 +84,7 @@ public class UserController {
         if (!credential.getNewPassword().equals(credential.getConfirmPassword())) {
             throw new NotMatchesPasswordException("Passwords do not match");
         }
-        userService.changePassword(
+        userService.restorePassword(
                 credential.getNewPassword(),
                 credential.getConfirmToken());
     }
