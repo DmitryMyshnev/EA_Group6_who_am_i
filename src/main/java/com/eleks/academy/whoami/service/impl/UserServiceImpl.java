@@ -12,6 +12,7 @@ import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
+import com.eleks.academy.whoami.security.TokenBlackList;
 import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
@@ -37,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder encoder;
     private final Jwt jwt;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenBlackList tokenBlackList;
 
     @Value("${confirm-url}")
     private String confirmUrl;
@@ -161,6 +163,7 @@ public class UserServiceImpl implements UserService {
         var email = jwt.getEmailFromJwtToken(token);
         userRepository.findByEmail(email)
                 .ifPresent(refreshTokenRepository::deleteByUser);
+        tokenBlackList.put(email, token);
     }
 
     private String getEmailByToken(String token) {

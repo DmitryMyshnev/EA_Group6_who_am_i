@@ -78,10 +78,4 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
     }
 
-    @ExceptionHandler(NotFoundUserException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Object> handleGetUserByIdException(NotFoundUserException e) {
-        String message = e.getMessage();
-        return ResponseEntity.badRequest().body(new ErrorResponse("Failed to find user", message == null ? null : List.of(message)));
-    }
 }
