@@ -69,7 +69,7 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(TokenException.class)
     public ResponseEntity<Object> handleExpirationTokenException(TokenException e) {
         String message = e.getMessage();
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
     }
 
     @ExceptionHandler(NotMatchesPasswordException.class)
