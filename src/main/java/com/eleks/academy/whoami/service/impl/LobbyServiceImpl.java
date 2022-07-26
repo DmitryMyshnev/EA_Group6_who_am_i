@@ -92,6 +92,9 @@ public class LobbyServiceImpl implements LobbyService {
         if (filter.getCountPlayersFilters() == null) {
             filter.setCountPlayersFilters(List.of());
         }
+        if (filter.getPrivateFilter() == null) {
+            filter.setPrivateFilter(List.of());
+        }
         return lobbyRepository.findAll(createSpecification(filter));
     }
 }

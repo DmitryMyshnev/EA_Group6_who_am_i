@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -17,5 +18,7 @@ public class LobbyFilter {
     private List<String> themeFilters;
 
     private List<Integer> countPlayersFilters;
+
+    private List<Boolean> privateFilter;
 
 }
