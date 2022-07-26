@@ -13,6 +13,7 @@ import com.eleks.academy.whoami.repository.ThemeRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
 import com.eleks.academy.whoami.service.LobbyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,7 +87,7 @@ public class LobbyServiceImpl implements LobbyService {
     @Override
     public List<Lobby> filter(LobbyFilter lobbyFilter) {
         if (lobbyFilter.getThemeFilters() != null && !lobbyFilter.getThemeFilters().isEmpty()) {
-           return lobbyRepository.findLobbyByThemeFilter(lobbyFilter.getThemeFilters());
+           return lobbyRepository.findByThemeNameIn(lobbyFilter.getThemeFilters());
         }
         return List.of();
     }
