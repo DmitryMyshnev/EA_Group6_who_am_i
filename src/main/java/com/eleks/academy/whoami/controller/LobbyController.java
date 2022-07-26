@@ -77,9 +77,6 @@ public class LobbyController {
     @GetMapping("/filter")
     @Transactional
     public ResponseEntity<List<LobbyWithCountUsers>> lobbyFilter(@RequestBody LobbyFilter lobbyFilter) {
-        if (lobbyFilter.getThemeFilters() == null) {
-            lobbyFilter.setThemeFilters(List.of());
-        }
         return lobbyService.filter(lobbyFilter)
                 .stream()
                 .map(lobby -> {
