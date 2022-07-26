@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.eleks.academy.whoami.db.specification.LobbySpecification.themeIn;
 import static java.lang.Boolean.TRUE;
 
 @RequiredArgsConstructor
@@ -85,8 +86,8 @@ public class LobbyServiceImpl implements LobbyService {
 
     @Override
     public List<Lobby> filter(LobbyFilter lobbyFilter) {
-        if (lobbyFilter.getThemeFilters() != null && !lobbyFilter.getThemeFilters().isEmpty()) {
-           return lobbyRepository.findLobbyByThemeFilter(lobbyFilter.getThemeFilters());
+        if (lobbyFilter.getThemeFilters().isEmpty()) {
+            return lobbyRepository.findAll(themeIn(lobbyFilter.getThemeFilters()));
         }
         return List.of();
     }
