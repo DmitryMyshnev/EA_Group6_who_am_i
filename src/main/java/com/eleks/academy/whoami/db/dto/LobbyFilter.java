@@ -16,4 +16,6 @@ public class LobbyFilter {
 
     private List<String> themeFilters;
 
+    private List<Integer> countPlayersFilters;
+
 }
