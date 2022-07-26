@@ -1,5 +1,6 @@
 package com.eleks.academy.whoami.security;
 
+import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.security.exception.NotAcceptableOauthException;
 import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.UserService;
@@ -32,10 +33,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             var token = parseRequestHeader(request);
             if (!token.isBlank() && jwt.validateJwtToken(token)) {
                 var email = jwt.getEmailFromJwtToken(token);
-                if (tokenBlackList.containsKey(email)) {
+                var userDetails = userService.loadUserByUsername(email);
+                var user = (User)userDetails;
+                if (tokenBlackList.containsKey(user.getId())) {
                     throw new NotAcceptableOauthException();
                 }
-                var userDetails = userService.loadUserByUsername(email);
                 var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

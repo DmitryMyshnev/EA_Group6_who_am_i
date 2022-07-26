@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
         var user = findByEmailAndPassword(request.getEmail(), request.getPassword());
         var accessToken = jwt.generateToken(user.getEmail(), accessTokenExpiration);
         var refreshToken = refreshTokenService.createRefreshToken(user);
-        tokenBlackList.remove(user.getEmail());
+        tokenBlackList.remove(user.getId());
 
         return JwtResponse.builder()
                 .userId(user.getId())

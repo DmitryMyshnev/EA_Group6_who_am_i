@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
                 .flatMap(then -> userRepository.findByEmail(email))
                 .ifPresent(user -> user.setPassword(encoder.encode(newPassword)));
     }
-    
+
     @Override
     @Transactional
     public User findById(Long id) {
@@ -162,8 +162,10 @@ public class UserServiceImpl implements UserService {
     public void logout(String token) {
         var email = jwt.getEmailFromJwtToken(token);
         userRepository.findByEmail(email)
-                .ifPresent(refreshTokenRepository::deleteByUser);
-        tokenBlackList.put(email, token);
+                .ifPresent(user -> {
+                    refreshTokenRepository.deleteByUser(user);
+                    tokenBlackList.put(user.getId(), token);
+                });
     }
 
     private String getEmailByToken(String token) {
