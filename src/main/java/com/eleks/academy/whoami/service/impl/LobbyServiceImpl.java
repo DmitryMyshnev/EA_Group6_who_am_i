@@ -86,7 +86,7 @@ public class LobbyServiceImpl implements LobbyService {
 
     @Override
     public List<Lobby> filter(LobbyFilter lobbyFilter) {
-        if (lobbyFilter.getThemeFilters().isEmpty()) {
+        if (!lobbyFilter.getThemeFilters().isEmpty()) {
             return lobbyRepository.findAll(themeIn(lobbyFilter.getThemeFilters()));
         }
         return List.of();
