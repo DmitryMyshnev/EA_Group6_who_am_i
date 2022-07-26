@@ -17,4 +17,5 @@ public interface UserService extends UserDetailsService {
 
     User findById(Long id);
 
+    void logout(String token);
 }

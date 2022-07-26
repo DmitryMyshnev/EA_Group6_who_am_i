@@ -7,6 +7,7 @@ import com.eleks.academy.whoami.db.dto.RefreshTokenResponse;
 import com.eleks.academy.whoami.db.model.RefreshToken;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
+import com.eleks.academy.whoami.security.TokenBlackList;
 import com.eleks.academy.whoami.security.exception.NotFoundOauthException;
 import com.eleks.academy.whoami.security.exception.TokenRefreshException;
 import com.eleks.academy.whoami.security.jwt.Jwt;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.eleks.academy.whoami.security.AuthTokenFilter.BEARER;
 import static java.lang.Boolean.FALSE;
@@ -31,15 +33,19 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final Jwt jwt;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenBlackList tokenBlackList;
 
     @Value("${jwt.access-token.expiration}")
     private long accessTokenExpiration;
 
     @Override
+    @Transactional
     public JwtResponse authenticate(CredentialRequest request) {
         var user = findByEmailAndPassword(request.getEmail(), request.getPassword());
         var accessToken = jwt.generateToken(user.getEmail(), accessTokenExpiration);
         var refreshToken = refreshTokenService.createRefreshToken(user);
+        tokenBlackList.remove(user.getId());
+
         return JwtResponse.builder()
                 .userId(user.getId())
                 .username(user.getName())
@@ -51,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public RefreshTokenResponse refreshToken(RefreshTokenCommandDto refreshTokenCommandDto) {
         return refreshTokenRepository.findByToken(refreshTokenCommandDto.getRefreshToken())
                 .filter(refreshTokenService::verifyToken)
@@ -59,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
                     var token = jwt.generateToken(user.getEmail(), accessTokenExpiration);
                     return new RefreshTokenResponse(token);
                 })
-                .orElseThrow(()-> new TokenRefreshException("Refresh token not found"));
+                .orElseThrow(() -> new TokenRefreshException("Refresh token not found"));
     }
 
     private User findByEmailAndPassword(String email, String password) {

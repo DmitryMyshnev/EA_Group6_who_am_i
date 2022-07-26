@@ -34,4 +34,5 @@ public class AuthController {
         var refreshToken = authService.refreshToken(dto);
         return ResponseEntity.ok(refreshToken);
     }
+
 }
