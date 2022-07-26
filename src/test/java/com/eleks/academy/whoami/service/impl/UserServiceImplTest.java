@@ -12,6 +12,7 @@ import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
+import com.eleks.academy.whoami.security.TokenBlackList;
 import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
@@ -46,7 +47,8 @@ class UserServiceImplTest {
         PasswordEncoder encoder = Mockito.mock(PasswordEncoder.class);
         RefreshTokenRepository refreshTokenRepository = Mockito.mock(RefreshTokenRepository.class);
         Jwt jwt = Mockito.mock(Jwt.class);
-        userService = new UserServiceImpl(userRepository, tokenRepository, emailService, encoder, jwt, refreshTokenRepository);
+        TokenBlackList tokenBlackList = Mockito.mock(TokenBlackList.class);
+        userService = new UserServiceImpl(userRepository, tokenRepository, emailService, encoder, jwt, refreshTokenRepository, tokenBlackList);
     }
 
     @Test
@@ -104,7 +106,8 @@ class UserServiceImplTest {
     }
 
     @Test
-    void givenInvalidToken_restorePassword_shouldBeThrowException() {
+    void givenInvalidToken_changePassword_shouldBeThrowException() {
+
         assertThrows(TokenException.class, () -> userService.restorePassword("123", "AEWq"));
     }
 

@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
@@ -14,6 +16,8 @@ import javax.validation.constraints.NotNull;
 public class RestorePasswordCredential {
 
     @NotNull
+    @Length(min = 8, message = "Password must be more than 8 symbols")
+    @Pattern(regexp = "^[^\\s]+[^\\s]+$", message = "Password cannot have any whitespaces")
     private String newPassword;
 
     @NotNull

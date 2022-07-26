@@ -59,6 +59,18 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
+
+    @GetMapping("{id}")
+    @Transactional
+    public ResponseEntity<UserDto> findById(@PathVariable Long id) {
+        var user = userService.findById(id);
+        var userDto = userMapper.toDTO(user);
+        return Optional.of(userDto)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+
     @GetMapping("/password-restore")
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -70,7 +82,6 @@ public class UserController {
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void restorePassword(@RequestBody @Valid RestorePasswordCredential credential) {
-
         userService.restorePassword(
                 credential.getNewPassword(),
                 credential.getConfirmToken());
