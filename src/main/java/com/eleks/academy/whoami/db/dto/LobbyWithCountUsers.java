@@ -11,13 +11,14 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LobbyDto {
-
+public class LobbyWithCountUsers {
     private Long id;
 
     private String theme;
 
     private Integer numberOfPlayers;
+
+    private Integer joinPlayers;
 
     private Boolean isPrivate;
 

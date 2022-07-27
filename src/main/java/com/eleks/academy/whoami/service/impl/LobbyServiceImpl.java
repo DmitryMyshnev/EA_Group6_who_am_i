@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.lang.Boolean.TRUE;
 
@@ -70,5 +71,17 @@ public class LobbyServiceImpl implements LobbyService {
     @Transactional
     public List<User> findAllUsersByLobbyId(Long lobbyId) {
         return lobbyRepository.findAllUsersByLobbyId(lobbyId);
+    }
+
+    @Override
+    public List<Lobby> findAllLobbies() {
+       return   lobbyRepository.findAll();
+    }
+
+    @Override
+    public Stream<Long> findAllLobbyIdsWithJoinUser() {
+        return lobbyAndUserRepository.findAll()
+                .stream()
+                .map(LobbyAndUser::getId);
     }
 }

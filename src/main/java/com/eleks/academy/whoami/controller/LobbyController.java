@@ -3,6 +3,7 @@ package com.eleks.academy.whoami.controller;
 import com.eleks.academy.whoami.db.dto.CreateLobbyCommandDto;
 import com.eleks.academy.whoami.db.dto.LobbyDto;
 import com.eleks.academy.whoami.db.dto.LobbyUserDto;
+import com.eleks.academy.whoami.db.dto.LobbyWithCountUsers;
 import com.eleks.academy.whoami.db.dto.ThemeDto;
 import com.eleks.academy.whoami.db.mapper.LobbyMapper;
 import com.eleks.academy.whoami.db.mapper.ThemeMapper;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -57,5 +59,22 @@ public class LobbyController {
                 .stream()
                 .map(lobbyMapper::toDto)
                 .collect(collectingAndThen(toList(), ResponseEntity::ok));
+    }
+
+    @GetMapping
+    @Transactional
+    public ResponseEntity<List<LobbyWithCountUsers>> findAllLobbies() {
+        var lobbies = lobbyService.findAllLobbies()
+                .stream()
+                .map(lobbyMapper::toDtoWithCountUser)
+                .toList();
+        lobbyService.findAllLobbyIdsWithJoinUser()
+                .collect(Collectors.toMap(k -> k, v -> 1, Integer::sum))
+                .forEach((k, v) -> lobbies
+                        .stream()
+                        .filter(lobby -> lobby.getId().equals(k))
+                        .findFirst()
+                        .ifPresent(lobby -> lobby.setJoinPlayers(v)));
+        return ResponseEntity.ok(lobbies);
     }
 }

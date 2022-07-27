@@ -55,7 +55,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/users/access",
                         "/games/**",
                         "/h2/**").permitAll()
-
                 .anyRequest().authenticated();
 
         http.addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
