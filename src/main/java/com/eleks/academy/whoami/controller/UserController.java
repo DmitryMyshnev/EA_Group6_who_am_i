@@ -2,10 +2,11 @@ package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommandDto;
 import com.eleks.academy.whoami.db.dto.UserDto;
-import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
 import com.eleks.academy.whoami.db.mapper.UserMapper;
+import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
 import com.eleks.academy.whoami.model.request.EmailRequest;
 import com.eleks.academy.whoami.model.request.RestorePasswordCredential;
+import com.eleks.academy.whoami.model.request.UsernameRequest;
 import com.eleks.academy.whoami.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -79,17 +80,33 @@ public class UserController {
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void restorePassword(@RequestBody @Valid RestorePasswordCredential credential) {
-        if (!credential.getNewPassword().equals(credential.getConfirmPassword())) {
-            throw new NotMatchesPasswordException("Passwords do not match");
-        }
         userService.restorePassword(
                 credential.getNewPassword(),
                 credential.getConfirmToken());
     }
 
+    @Transactional
     @GetMapping("/logout")
     @ResponseStatus(HttpStatus.OK)
     public void logout(@RequestHeader(AUTHORIZATION) String token) {
         userService.logout(token.split(BEARER)[1]);
+    }
+
+    @Transactional
+    @PutMapping("/{id}/name")
+    public ResponseEntity<UserDto> changeUsername(@RequestBody @Valid UsernameRequest request,
+                                                  @PathVariable Long id) {
+        var user = userService.changeUsername(id, request.getUsername());
+        var userDto = userMapper.toDTO(user);
+        return Optional.of(userDto)
+                .map(dto -> ResponseEntity.ok().body(dto))
+                .orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+    @Transactional
+    @PutMapping("/{id}/password")
+    public void changePassword(@PathVariable Long id,
+                               @RequestBody @Valid ChangePasswordCredential credential) {
+        userService.changePassword(credential, id);
     }
 }
