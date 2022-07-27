@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.eleks.academy.whoami.db.specification.LobbySpecification.themeIn;
+import static com.eleks.academy.whoami.db.specification.LobbySpecification.createSpecification;
 import static java.lang.Boolean.TRUE;
 
 @RequiredArgsConstructor
@@ -81,11 +81,19 @@ public class LobbyServiceImpl implements LobbyService {
     }
 
     @Override
+    public List<Lobby> filter(LobbyFilter filter) {
+        if (filter.getThemeFilters() == null) {
+            filter.setThemeFilters(List.of());
+    }
+    
     public List<Lobby> filter(LobbyFilter lobbyFilter) {
         if (!lobbyFilter.getThemeFilters().isEmpty()) {
             return lobbyRepository.findAll(themeIn(lobbyFilter.getThemeFilters()));
         }
-        return List.of();
+        if (filter.getCountPlayersFilters() == null) {
+            filter.setCountPlayersFilters(List.of());
+        }
+        return lobbyRepository.findAll(createSpecification(filter));
     }
 
     public Stream<Long> findAllLobbyIdsWithJoinUser() {
