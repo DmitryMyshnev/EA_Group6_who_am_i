@@ -14,7 +14,7 @@ public class CreateUserCommandDto {
     @Length(min =  2, max = 50, message = "Username is too short or too long")
     private String userName;
 
-    @Email(regexp = "[\\w^@]+@\\S+\\w$", message = "Email is not correct")
+    @Email(regexp = "[\\S^@]+@\\S+\\w$", message = "Email is not correct")
     @NotBlank
     private String  email;
 
