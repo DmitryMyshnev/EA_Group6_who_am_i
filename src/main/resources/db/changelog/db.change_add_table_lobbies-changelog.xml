@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="11" author="Dmytro Mishnev">
+
+        <createTable tableName="lobbies">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="theme_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="number_of_players" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_private" type="boolean">
+                <constraints nullable="false" />
+            </column>
+            <column name="password" type="varchar(512)">
+                <constraints nullable="true" />
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="12" author="Dmytro Mishnev">
+        <addForeignKeyConstraint baseTableName="lobbies" baseColumnNames="theme_id" constraintName="lobby_theme"
+                                 referencedTableName="themes"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="lobbies" baseColumnNames="user_id" constraintName="lobby_user"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

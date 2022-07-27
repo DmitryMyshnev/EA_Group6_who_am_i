@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="13" author="Dmytro Mishnev">
+        <createTable tableName="lobby_user">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="lobby_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="14" author="Dmytro Mishnev">
+
+        <addForeignKeyConstraint baseTableName="lobby_user" baseColumnNames="lobby_id" constraintName="fk_lobby_user"
+                                 referencedTableName="lobbies"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="lobby_user" baseColumnNames="user_id" constraintName="fk_user_lobby"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>
