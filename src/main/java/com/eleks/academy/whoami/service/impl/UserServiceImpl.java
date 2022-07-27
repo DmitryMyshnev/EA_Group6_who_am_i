@@ -10,6 +10,9 @@ import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +21,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,17 +29,21 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RegistrationTokenRepository registrationTokenRepository;
     private final EmailService emailService;
+    private final PasswordEncoder encoder;
 
     @Value("${confirm-url}")
     private String confirmUrl;
 
+
     @Value("${server.servlet.context-path}")
     private String postfix;
 
+
     @Transactional
     @Override
-    public Optional<User> findUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
     }
 
     @Transactional
@@ -81,7 +87,7 @@ public class UserServiceImpl implements UserService {
         var user = User.builder()
                 .name(command.getName())
                 .email(command.getEmail())
-                .password(command.getPassword())
+                .password(encoder.encode(command.getPassword()))
                 .isActivated(false)
                 .build();
         userRepository.save(user);

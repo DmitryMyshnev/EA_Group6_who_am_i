@@ -49,4 +49,12 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
 
+jwt:
+  token-secret: ${JWT_SECRET_KEY}
+  access-token:
+          expiration: 300000
+  refresh-token:
+          expiration: 86400000
+
 confirm-url: ${CONFIRM_URL}
+
