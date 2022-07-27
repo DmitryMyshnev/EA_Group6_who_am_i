@@ -26,6 +26,7 @@ import static java.lang.Boolean.FALSE;
 public class AuthServiceImpl implements AuthService {
 
     private static final String BAD_CREDENTIAL_ERROR_MESSAGE = "Bad credential";
+    private static final String IS_NOT_ACTIVATED_ERROR_MESSAGE = "Account is not activated";
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final Jwt jwt;
@@ -64,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
     private User findByEmailAndPassword(String email, String password) {
         var user = (User) userService.loadUserByUsername(email);
         if (FALSE.equals(user.getIsActivated())) {
-            throw new NotFoundOauthException(BAD_CREDENTIAL_ERROR_MESSAGE);
+            throw new NotFoundOauthException(IS_NOT_ACTIVATED_ERROR_MESSAGE);
         }
         if (BCrypt.checkpw(password, user.getPassword())) {
             return user;
