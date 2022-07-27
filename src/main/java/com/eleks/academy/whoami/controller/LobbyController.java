@@ -2,6 +2,7 @@ package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.db.dto.CreateLobbyCommandDto;
 import com.eleks.academy.whoami.db.dto.LobbyDto;
+import com.eleks.academy.whoami.db.dto.LobbyFilter;
 import com.eleks.academy.whoami.db.dto.LobbyUserDto;
 import com.eleks.academy.whoami.db.dto.LobbyWithCountUsers;
 import com.eleks.academy.whoami.db.dto.ThemeDto;
@@ -76,5 +77,21 @@ public class LobbyController {
                         .findFirst()
                         .ifPresent(lobby -> lobby.setJoinPlayers(v)));
         return ResponseEntity.ok(lobbies);
+    }
+
+    @GetMapping("/filter")
+    @Transactional
+    public ResponseEntity<List<LobbyWithCountUsers>> lobbyFilter(@RequestBody LobbyFilter lobbyFilter) {
+        if (lobbyFilter.getThemeFilters() == null) {
+            lobbyFilter.setThemeFilters(List.of());
+        }
+        return lobbyService.filter(lobbyFilter)
+                .stream()
+                .map(lobby -> {
+                    var lb = lobbyMapper.toDtoWithCountUser(lobby);
+                    lb.setJoinPlayers(lobbyService.countJoinPlayers(lobby.getId()));
+                    return lb;
+                })
+                .collect(collectingAndThen(toList(), ResponseEntity::ok));
     }
 }

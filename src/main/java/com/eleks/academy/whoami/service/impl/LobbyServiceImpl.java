@@ -1,6 +1,7 @@
 package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateLobbyCommand;
+import com.eleks.academy.whoami.db.dto.LobbyFilter;
 import com.eleks.academy.whoami.db.exception.CreateLobbyException;
 import com.eleks.academy.whoami.db.model.Lobby;
 import com.eleks.academy.whoami.db.model.LobbyAndUser;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.eleks.academy.whoami.db.specification.LobbySpecification.themeIn;
 import static java.lang.Boolean.TRUE;
 
 @RequiredArgsConstructor
@@ -75,10 +77,17 @@ public class LobbyServiceImpl implements LobbyService {
 
     @Override
     public List<Lobby> findAllLobbies() {
-       return   lobbyRepository.findAll();
+        return lobbyRepository.findAll();
     }
 
     @Override
+    public List<Lobby> filter(LobbyFilter lobbyFilter) {
+        if (!lobbyFilter.getThemeFilters().isEmpty()) {
+            return lobbyRepository.findAll(themeIn(lobbyFilter.getThemeFilters()));
+        }
+        return List.of();
+    }
+
     public Stream<Long> findAllLobbyIdsWithJoinUser() {
         return lobbyAndUserRepository.findAll()
                 .stream()
