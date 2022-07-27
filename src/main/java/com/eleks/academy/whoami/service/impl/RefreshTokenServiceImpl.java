@@ -25,6 +25,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         var token = new RefreshToken();
         token.setUser(user);
         token.setToken(jwt.generateToken(user.getId().toString(), refreshTokenExpiration));
+        if (refreshTokenRepository.findByToken(token.getToken()).isPresent()) {
+            return token;
+        }
         return refreshTokenRepository.save(token);
     }
 

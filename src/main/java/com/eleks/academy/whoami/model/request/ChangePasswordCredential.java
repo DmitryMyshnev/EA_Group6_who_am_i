@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -12,10 +13,17 @@ import javax.validation.constraints.NotNull;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmailRequest {
+public class ChangePasswordCredential {
 
     @NotNull
     @NotBlank
-    private String email;
+    private String oldPassword;
+
+    @NotNull
+    @Length(min = 8)
+    private String newPassword;
+
+    @NotNull
+    private String confirmPassword;
 
 }
