@@ -7,6 +7,7 @@ import com.eleks.academy.whoami.db.model.Theme;
 import com.eleks.academy.whoami.db.model.User;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface LobbyService {
 
@@ -18,7 +19,8 @@ public interface LobbyService {
 
     List<Lobby> findAllLobbies();
 
-    int countJoinPlayers(Long id);
-
     List<Lobby> filter(LobbyFilter lobbyFilter);
+
+    Stream<Long> findAllLobbyIdsWithJoinUser();
+
 }

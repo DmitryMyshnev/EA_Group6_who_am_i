@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.eleks.academy.whoami.db.specification.LobbySpecification.themeIn;
 import static java.lang.Boolean.TRUE;
@@ -80,15 +81,16 @@ public class LobbyServiceImpl implements LobbyService {
     }
 
     @Override
-    public int countJoinPlayers(Long lobbyId) {
-        return lobbyAndUserRepository.countByLobbyId(lobbyId);
-    }
-
-    @Override
     public List<Lobby> filter(LobbyFilter lobbyFilter) {
         if (!lobbyFilter.getThemeFilters().isEmpty()) {
             return lobbyRepository.findAll(themeIn(lobbyFilter.getThemeFilters()));
         }
         return List.of();
+    }
+
+    public Stream<Long> findAllLobbyIdsWithJoinUser() {
+        return lobbyAndUserRepository.findAll()
+                .stream()
+                .map(LobbyAndUser::getId);
     }
 }
