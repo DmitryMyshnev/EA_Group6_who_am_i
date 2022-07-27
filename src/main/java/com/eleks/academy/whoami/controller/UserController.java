@@ -49,10 +49,13 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("{id}")
     @Transactional
-    public String findBuId(@PathVariable Long id){
-        return "Ok";
+    public ResponseEntity<UserDto> findById(@PathVariable Long id) {
+        var user = userService.findById(id);
+        var userDto = userMapper.toDTO(user);
+        return Optional.of(userDto)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
-
 }

@@ -3,6 +3,7 @@ package com.eleks.academy.whoami.configuration;
 import com.eleks.academy.whoami.controller.UserController;
 import com.eleks.academy.whoami.core.exception.ErrorResponse;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
+import com.eleks.academy.whoami.db.exception.UserNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,5 +51,12 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleSendMailException(MailSendException e) {
         String message = e.getMessage();
         return ResponseEntity.internalServerError().body(new ErrorResponse("Failed to send a mail", message == null ? null : List.of(message)));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> handleGetUserByIdException(UserNotFoundException e) {
+        String message = e.getMessage();
+        return ResponseEntity.badRequest().body(new ErrorResponse("Failed to find user", message == null ? null : List.of(message)));
     }
 }
