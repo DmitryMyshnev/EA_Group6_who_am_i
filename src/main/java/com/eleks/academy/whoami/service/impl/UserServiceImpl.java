@@ -3,12 +3,13 @@ package com.eleks.academy.whoami.service.impl;
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
+import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.exception.UserNotFoundException;
 
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
+import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,6 +167,42 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(user -> {
                     refreshTokenRepository.deleteByUser(user);
                     tokenBlackList.put(user.getId(), token);
+                });
+    }
+
+
+    @Override
+    @Transactional
+    public User changeUsername(Long id, String username) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    user.setName(username);
+                    return user;
+                })
+                .orElseThrow(NotFoundUserException::new);
+    }
+
+    @Override
+    public void changePassword(ChangePasswordCredential credential, Long id) {
+        if (!credential.getNewPassword().equals(credential.getConfirmPassword())) {
+            throw new ChangePasswordException("Passwords do not match");
+        }
+
+        userRepository.findById(id)
+                .or(() -> {
+                    throw new NotFoundUserException();
+                })
+                .filter(user -> BCrypt.checkpw(credential.getOldPassword(), user.getPassword()))
+                .or(() -> {
+                    throw new ChangePasswordException("Bad credential");
+                })
+                .filter(user -> !BCrypt.checkpw(credential.getNewPassword(), user.getPassword()))
+                .or(() -> {
+                    throw new ChangePasswordException("Password is not valid");
+                })
+                .map(user -> {
+                    user.setPassword(encoder.encode(credential.getNewPassword()));
+                    return user;
                 });
     }
 

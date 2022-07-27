@@ -470,10 +470,10 @@ class GameControllerTest {
         game.enrollToGame(new PersistentPlayer("Sam", uuidGenerator.generateId().toString()));
         game.enrollToGame(new PersistentPlayer("Jack", uuidGenerator.generateId().toString()));
         game.enrollToGame(new PersistentPlayer("Kat", uuidGenerator.generateId().toString()));
-        game.setCharacter("Pol",  "Batman");
-        game.setCharacter("Sam",  "SuperMan");
-        game.setCharacter("Jack",  "SpiderMan");
-        game.setCharacter("Kat",  "IronMan");
+        game.setCharacter("Pol", "Batman");
+        game.setCharacter("Sam", "SuperMan");
+        game.setCharacter("Jack", "SpiderMan");
+        game.setCharacter("Kat", "IronMan");
         return game;
     }
 }

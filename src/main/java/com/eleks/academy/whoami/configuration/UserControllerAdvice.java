@@ -2,9 +2,10 @@ package com.eleks.academy.whoami.configuration;
 
 import com.eleks.academy.whoami.controller.UserController;
 import com.eleks.academy.whoami.core.exception.ErrorResponse;
+import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
-import com.eleks.academy.whoami.db.exception.NotMatchesPasswordException;
+
 import com.eleks.academy.whoami.db.exception.TokenException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,8 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     public static final String FAILED_CREATE_ACCOUNT = "Failed to create a user";
     public static final String FAILED_SEND_MAIL = "Failed to send a mail";
     public static final String FAILED_RESTORE_PASSWORD = "Failed to restore password";
+    public static final String USER_NOT_FOUND = "User is not found";
+    public static final String FAILED_CHANGE_PASSWORD = "Failed to change password";
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -63,7 +66,7 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(NotFoundUserException.class)
     public ResponseEntity<Object> handleNotFoundUserException(NotFoundUserException e) {
         String message = e.getMessage();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(USER_NOT_FOUND, message == null ? null : List.of(message)));
     }
 
     @ExceptionHandler(TokenException.class)
@@ -72,10 +75,10 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
     }
 
-    @ExceptionHandler(NotMatchesPasswordException.class)
-    public ResponseEntity<Object> handleNotMatchesPasswordException(NotMatchesPasswordException e) {
+    @ExceptionHandler(ChangePasswordException.class)
+    public ResponseEntity<Object> handleChangePasswordException(ChangePasswordException e) {
         String message = e.getMessage();
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ErrorResponse(FAILED_CHANGE_PASSWORD, message == null ? null : List.of(message)));
     }
 
 }
