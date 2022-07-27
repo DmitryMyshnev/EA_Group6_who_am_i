@@ -5,8 +5,11 @@ import com.eleks.academy.whoami.db.exception.CreateUserException;
 import com.eleks.academy.whoami.db.exception.NotFoundUserException;
 import com.eleks.academy.whoami.db.exception.TokenException;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
+import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
+import com.eleks.academy.whoami.security.TokenBlackList;
+import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,8 +39,11 @@ class UserServiceImplTest {
         userRepository = Mockito.mock(UserRepository.class);
         tokenRepository = Mockito.mock(TokenRepository.class);
         emailService = Mockito.mock(EmailService.class);
-        PasswordEncoder   encoder = Mockito.mock(PasswordEncoder.class);
-        userService = new UserServiceImpl(userRepository, tokenRepository, emailService, encoder);
+        PasswordEncoder encoder = Mockito.mock(PasswordEncoder.class);
+        RefreshTokenRepository refreshTokenRepository = Mockito.mock(RefreshTokenRepository.class);
+        Jwt jwt = Mockito.mock(Jwt.class);
+        TokenBlackList tokenBlackList = Mockito.mock(TokenBlackList.class);
+        userService = new UserServiceImpl(userRepository, tokenRepository, emailService, encoder, jwt, refreshTokenRepository, tokenBlackList);
     }
 
     @Test
@@ -81,7 +87,7 @@ class UserServiceImplTest {
 
     @Test
     void givenNoActualToken_save_ShouldThrowException() {
-        var registrationToken = new RegistrationToken("token", Instant.now().minus(31,ChronoUnit.MINUTES));
+        var registrationToken = new RegistrationToken("token", Instant.now().minus(31, ChronoUnit.MINUTES));
 
         when(tokenRepository.findByToken(anyString())).thenReturn(Optional.of(registrationToken));
 
@@ -89,20 +95,20 @@ class UserServiceImplTest {
     }
 
     @Test
-    void  givenNotExistEmail_sendMailRestorePassword_shouldBeThrowException(){
+    void givenNotExistEmail_sendMailRestorePassword_shouldBeThrowException() {
         when(userRepository.findByEmail(anyString())).thenThrow(NotFoundUserException.class);
         assertThrows(NotFoundUserException.class, () -> userService.sendMailRestorePassword("test@mail"));
     }
 
     @Test
-    void givenInvalidToken_changePassword_shouldBeThrowException(){
-        assertThrows(TokenException.class,()->userService.restorePassword("123", "AEWq"));
+    void givenInvalidToken_changePassword_shouldBeThrowException() {
+        assertThrows(TokenException.class, () -> userService.restorePassword("123", "AEWq"));
     }
 
-@Test
-    void givenNotExistToken_changePassword_shouldBeThrowException(){
-    when(tokenRepository.findByToken(anyString())).thenThrow(TokenException.class);
+    @Test
+    void givenNotExistToken_changePassword_shouldBeThrowException() {
+        when(tokenRepository.findByToken(anyString())).thenThrow(TokenException.class);
 
-    assertThrows(TokenException.class,()->userService.restorePassword("123", "AEW|eq"));
-}
+        assertThrows(TokenException.class, () -> userService.restorePassword("123", "AEW|eq"));
+    }
 }

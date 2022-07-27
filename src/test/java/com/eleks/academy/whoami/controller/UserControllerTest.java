@@ -1,31 +1,44 @@
 package com.eleks.academy.whoami.controller;
 
 import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.mapper.UserMapper;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = {UserController.class, UserMapper.class})
+@SpringBootTest
+@TestPropertySource(properties = {"spring.mail.username = test@mail", "spring.mail.password = 123", "jwt.token-secret = secret", "confirm-url = localhost:8080"})
 class UserControllerTest {
-
 
     @Autowired
     private MockMvc mockMvc;
+
     @MockBean
     private UserService userService;
+
+    @Autowired
+    private WebApplicationContext context;
+
+    @BeforeEach
+    public void setup() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+    }
 
     @Test
     void createUser() throws Exception{
@@ -56,5 +69,15 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.name").value("Pol"))
                 .andExpect(jsonPath("$.email").value("mail@test.com"))
                 .andExpect(jsonPath("$.isActivated").value(true));
+    }
+
+    @Test
+    void givenNullEmail_sendMailRestorePassword_shouldBeThrowException() throws Exception{
+
+        mockMvc.perform(get("/users/password-restore")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\" : null}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Validation failed!"));
     }
 }

@@ -3,13 +3,17 @@ package com.eleks.academy.whoami.service.impl;
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
 import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.exception.NotFoundUserException;
 import com.eleks.academy.whoami.db.exception.TokenException;
+import com.eleks.academy.whoami.db.exception.NotFoundUserException;
 import com.eleks.academy.whoami.db.exception.UserNotFoundException;
+
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
+import com.eleks.academy.whoami.repository.RefreshTokenRepository;
 import com.eleks.academy.whoami.repository.TokenRepository;
 import com.eleks.academy.whoami.repository.UserRepository;
+import com.eleks.academy.whoami.security.TokenBlackList;
+import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.EmailService;
 import com.eleks.academy.whoami.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +36,9 @@ public class UserServiceImpl implements UserService {
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
     private final PasswordEncoder encoder;
+    private final Jwt jwt;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenBlackList tokenBlackList;
 
     @Value("${confirm-url}")
     private String confirmUrl;
@@ -148,6 +155,17 @@ public class UserServiceImpl implements UserService {
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " is not found"));
+    }
+
+    @Override
+    @Transactional
+    public void logout(String token) {
+        var email = jwt.getEmailFromJwtToken(token);
+        userRepository.findByEmail(email)
+                .ifPresent(user -> {
+                    refreshTokenRepository.deleteByUser(user);
+                    tokenBlackList.put(user.getId(), token);
+                });
     }
 
     private String getEmailByToken(String token) {
