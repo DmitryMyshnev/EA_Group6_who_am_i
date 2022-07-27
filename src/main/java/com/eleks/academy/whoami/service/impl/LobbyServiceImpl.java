@@ -84,11 +84,6 @@ public class LobbyServiceImpl implements LobbyService {
     public List<Lobby> filter(LobbyFilter filter) {
         if (filter.getThemeFilters() == null) {
             filter.setThemeFilters(List.of());
-    }
-    
-    public List<Lobby> filter(LobbyFilter lobbyFilter) {
-        if (!lobbyFilter.getThemeFilters().isEmpty()) {
-            return lobbyRepository.findAll(themeIn(lobbyFilter.getThemeFilters()));
         }
         if (filter.getCountPlayersFilters() == null) {
             filter.setCountPlayersFilters(List.of());
@@ -101,6 +96,13 @@ public class LobbyServiceImpl implements LobbyService {
 
     public Stream<Long> findAllLobbyIdsWithJoinUser() {
         return lobbyAndUserRepository.findAll()
+                .stream()
+                .map(LobbyAndUser::getId);
+    }
+
+    @Override
+    public Stream<Long> findAllLobbyIdsWithJoinUserIn(List<Long> ids) {
+        return lobbyAndUserRepository.findByLobbyIdIn(ids)
                 .stream()
                 .map(LobbyAndUser::getId);
     }

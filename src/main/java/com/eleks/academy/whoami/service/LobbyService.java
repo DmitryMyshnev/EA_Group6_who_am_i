@@ -23,4 +23,5 @@ public interface LobbyService {
 
     Stream<Long> findAllLobbyIdsWithJoinUser();
 
+    Stream<Long> findAllLobbyIdsWithJoinUserIn(List<Long> ids);
 }

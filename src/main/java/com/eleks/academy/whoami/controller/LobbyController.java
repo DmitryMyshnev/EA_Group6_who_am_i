@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -69,26 +70,31 @@ public class LobbyController {
                 .stream()
                 .map(lobbyMapper::toDtoWithCountUser)
                 .toList();
-        lobbyService.findAllLobbyIdsWithJoinUser()
-                .collect(Collectors.toMap(k -> k, v -> 1, Integer::sum))
-                .forEach((k, v) -> lobbies
-                        .stream()
-                        .filter(lobby -> lobby.getId().equals(k))
-                        .findFirst()
-                        .ifPresent(lobby -> lobby.setJoinPlayers(v)));
+        this.map(lobbyService.findAllLobbyIdsWithJoinUser(), lobbies);
         return ResponseEntity.ok(lobbies);
     }
 
     @GetMapping("/filter")
     @Transactional
     public ResponseEntity<List<LobbyWithCountUsers>> lobbyFilter(@RequestBody LobbyFilter lobbyFilter) {
-        return lobbyService.filter(lobbyFilter)
+        var lobbies = lobbyService.filter(lobbyFilter)
                 .stream()
-                .map(lobby -> {
-                    var lb = lobbyMapper.toDtoWithCountUser(lobby);
-                    lb.setJoinPlayers(lobbyService.countJoinPlayers(lobby.getId()));
-                    return lb;
-                })
-                .collect(collectingAndThen(toList(), ResponseEntity::ok));
+                .map(lobbyMapper::toDtoWithCountUser)
+                .toList();
+        var ids = lobbies
+                .stream()
+                .map(LobbyWithCountUsers::getId)
+                .toList();
+        this.map(lobbyService.findAllLobbyIdsWithJoinUserIn(ids), lobbies);
+        return ResponseEntity.ok(lobbies);
+    }
+
+    private void map(Stream<Long> source, List<LobbyWithCountUsers> target) {
+        source.collect(Collectors.toMap(k -> k, v -> 1, Integer::sum))
+                .forEach((k, v) -> target
+                        .stream()
+                        .filter(lobby -> lobby.getId().equals(k))
+                        .findFirst()
+                        .ifPresent(lobby -> lobby.setJoinPlayers(v)));
     }
 }
