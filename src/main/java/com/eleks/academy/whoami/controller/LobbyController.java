@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -63,13 +64,17 @@ public class LobbyController {
     @GetMapping
     @Transactional
     public ResponseEntity<List<LobbyWithCountUsers>> findAllLobbies() {
-        return lobbyService.findAllLobbies()
+        var lobbies = lobbyService.findAllLobbies()
                 .stream()
-                .map(lobby -> {
-                    var lb = lobbyMapper.toDtoWithCountUser(lobby);
-                    lb.setJoinPlayers(lobbyService.countJoinPlayers(lobby.getId()));
-                    return lb;
-                })
-                .collect(collectingAndThen(toList(), ResponseEntity::ok));
+                .map(lobbyMapper::toDtoWithCountUser)
+                .toList();
+        lobbyService.findAllLobbyIdsWithJoinUser()
+                .collect(Collectors.toMap(k -> k, v -> 1, Integer::sum))
+                .forEach((k, v) -> lobbies
+                        .stream()
+                        .filter(lobby -> lobby.getId().equals(k))
+                        .findFirst()
+                        .ifPresent(lobby -> lobby.setJoinPlayers(v)));
+        return ResponseEntity.ok(lobbies);
     }
 }
