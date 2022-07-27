@@ -2,8 +2,11 @@ package com.eleks.academy.whoami.configuration;
 
 import com.eleks.academy.whoami.controller.UserController;
 import com.eleks.academy.whoami.core.exception.ErrorResponse;
+import com.eleks.academy.whoami.db.exception.ChangePasswordException;
 import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.exception.UserNotFoundException;
+import com.eleks.academy.whoami.db.exception.NotFoundUserException;
+
+import com.eleks.academy.whoami.db.exception.TokenException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,12 @@ import static java.util.stream.Collectors.toList;
 @RestControllerAdvice(assignableTypes = UserController.class)
 public class UserControllerAdvice extends ResponseEntityExceptionHandler {
 
+    public static final String FAILED_CREATE_ACCOUNT = "Failed to create a user";
+    public static final String FAILED_SEND_MAIL = "Failed to send a mail";
+    public static final String FAILED_RESTORE_PASSWORD = "Failed to restore password";
+    public static final String USER_NOT_FOUND = "User is not found";
+    public static final String FAILED_CHANGE_PASSWORD = "Failed to change password";
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status,
@@ -42,7 +51,7 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> handleCreateUserException(CreateUserException e) {
         String message = e.getMessage();
-        return ResponseEntity.badRequest().body(new ErrorResponse("Failed to create a user", message == null ? null : List.of(message)));
+        return ResponseEntity.badRequest().body(new ErrorResponse(FAILED_CREATE_ACCOUNT, message == null ? null : List.of(message)));
     }
 
 
@@ -50,13 +59,26 @@ public class UserControllerAdvice extends ResponseEntityExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> handleSendMailException(MailSendException e) {
         String message = e.getMessage();
-        return ResponseEntity.internalServerError().body(new ErrorResponse("Failed to send a mail", message == null ? null : List.of(message)));
+        return ResponseEntity.internalServerError().body(new ErrorResponse(FAILED_SEND_MAIL, message == null ? null : List.of(message)));
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Object> handleGetUserByIdException(UserNotFoundException e) {
+
+    @ExceptionHandler(NotFoundUserException.class)
+    public ResponseEntity<Object> handleNotFoundUserException(NotFoundUserException e) {
         String message = e.getMessage();
-        return ResponseEntity.badRequest().body(new ErrorResponse("Failed to find user", message == null ? null : List.of(message)));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(USER_NOT_FOUND, message == null ? null : List.of(message)));
     }
+
+    @ExceptionHandler(TokenException.class)
+    public ResponseEntity<Object> handleExpirationTokenException(TokenException e) {
+        String message = e.getMessage();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(FAILED_RESTORE_PASSWORD, message == null ? null : List.of(message)));
+    }
+
+    @ExceptionHandler(ChangePasswordException.class)
+    public ResponseEntity<Object> handleChangePasswordException(ChangePasswordException e) {
+        String message = e.getMessage();
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ErrorResponse(FAILED_CHANGE_PASSWORD, message == null ? null : List.of(message)));
+    }
+
 }

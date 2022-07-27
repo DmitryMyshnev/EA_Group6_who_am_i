@@ -5,6 +5,7 @@ import com.eleks.academy.whoami.db.dto.RefreshTokenCommandDto;
 import com.eleks.academy.whoami.db.model.RefreshToken;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.repository.RefreshTokenRepository;
+import com.eleks.academy.whoami.security.TokenBlackList;
 import com.eleks.academy.whoami.security.jwt.Jwt;
 import com.eleks.academy.whoami.service.AuthService;
 import com.eleks.academy.whoami.service.RefreshTokenService;
@@ -33,7 +34,8 @@ class AuthServiceImplTest {
         refreshTokenService = Mockito.mock(RefreshTokenService.class);
         jwt = Mockito.mock(Jwt.class);
         refreshTokenRepository = Mockito.mock(RefreshTokenRepository.class);
-        authService = new AuthServiceImpl(userService, refreshTokenService, jwt, refreshTokenRepository);
+        TokenBlackList tokenBlackList = Mockito.mock(TokenBlackList.class);
+        authService = new AuthServiceImpl(userService, refreshTokenService, jwt, refreshTokenRepository, tokenBlackList);
     }
 
     @Test

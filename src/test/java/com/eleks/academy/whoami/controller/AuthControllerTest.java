@@ -21,9 +21,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@TestPropertySource(properties = {"spring.mail.username = test@mail", "spring.mail.password = 123", "jwt.token-secret = secret"})
+@TestPropertySource(properties = {"spring.mail.username = test@mail", "spring.mail.password = 123", "jwt.token-secret = secret","confirm-url = localhost:8080"})
 class AuthControllerTest {
     private MockMvc mockMvc;
     @MockBean
@@ -69,7 +70,8 @@ class AuthControllerTest {
                         .content("{" +
                                 "\"refreshToken\" : \"456\"" +
                               "}"))
-                .andExpect(jsonPath("$.token").value("12345"))
-                .andExpect(jsonPath("$.type").value("Bearer"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("12345"));
+
     }
 }
