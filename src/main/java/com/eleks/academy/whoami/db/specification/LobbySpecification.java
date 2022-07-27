@@ -22,6 +22,9 @@ public class LobbySpecification {
             if (!filter.getCountPlayersFilters().isEmpty()) {
                 predicates.add(builder.in(root.get("numberOfPlayers")).value(filter.getCountPlayersFilters()));
             }
+            if (!filter.getPrivateFilter().isEmpty()) {
+                predicates.add(builder.in(root.get("isPrivate")).value(filter.getPrivateFilter()));
+            }
             return builder.and(predicates.toArray(new Predicate[0]));
         };
     }
