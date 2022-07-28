@@ -69,7 +69,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @GetMapping("/password-restore")
+    @PostMapping("/password-restore")
     @Transactional
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void sendMailRestorePassword(@RequestBody @Valid EmailRequest emailRequest) {
