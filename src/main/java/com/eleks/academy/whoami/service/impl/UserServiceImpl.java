@@ -131,9 +131,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void restorePassword(String newPassword, String confirmToken) {
-        if (!newPassword.equals(confirmToken)) {
-            throw new ChangePasswordException("Passwords do not match");
-        }
         var email = getEmailByToken(confirmToken);
         tokenRepository.findByToken(confirmToken)
                 .or(() -> {
