@@ -19,12 +19,17 @@
             </column>
         </createTable>
 
+        <insert tableName="registration_token">
+            <column name="id" value="1"/>
+            <column name="token" value="TXlraGFpbG8gSG9yb3Noa298bXlraGFpbG8uaG9yb3Noa29AZWxla3MuY29t"/>
+            <column name="create_time" value="2022-07-28 13:18:34.908504"/>
+        </insert>
         <insert tableName="users">
             <column name="id" value="1"/>
-            <column name="name" value="Admin"/>
-            <column name="email" value="user@com"/>
-            <!--password = 12345678-->
-            <column name="password" value="$2a$10$IUsLbzWq55njBJQpEtMK9ucNH.FjjVyeCWZYMEzZ9ToZ8YLTpE8p."/>
+            <column name="name" value="Mykhailo Horoshko"/>
+            <column name="email" value="mykhailo.horoshko@eleks.com"/>
+            <!--password = Aa123456-->
+            <column name="password" value="	$2a$10$5/piKi3X/PWA3LZwfs8k0.9jwxsCrZuqhEt4YdlGF7ekj0BCj0t1a"/>
             <column name="is_activated" value="true"/>
         </insert>
     </changeSet>
