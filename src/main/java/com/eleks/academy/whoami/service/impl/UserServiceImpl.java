@@ -123,9 +123,10 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(tk -> tk.setCreateTime(Instant.now()));
 
         var urlToken = generateUrl("/new-password?token=", token);
-        String text = "Dear Player, we`ve got a request to reset your WAI password.\n" +
-                urlToken + "\n" +
-                "If you ignore this message, your password will not be changed";
+        String text = "Dear Player, we`ve got a request to reset your WAI password.\n\n" +
+                urlToken + "\n\n" +
+                "If you ignore this message, your password will not be changed" +
+                "\n (reset password link is valid for 24 h from the mail receiving time)";
         emailService.sendSimpleMessage(email, "Confirm restore password", text);
     }
 
