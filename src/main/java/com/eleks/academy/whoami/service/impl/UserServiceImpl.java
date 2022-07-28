@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -167,12 +168,24 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User changeUsername(Long id, String username) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setName(username);
-                    return user;
+        AtomicReference<String> oldToken = new AtomicReference<>();
+        var user = userRepository.findById(id)
+                .map(oldUser -> {
+                    var data = oldUser.getName() + "|" + oldUser.getEmail();
+                    oldToken.set(Base64.getEncoder().encodeToString(data.getBytes()));
+                    oldUser.setName(username);
+                    return oldUser;
                 })
                 .orElseThrow(NotFoundUserException::new);
+        var data = user.getName() + "|" + user.getEmail();
+        var token = Base64.getEncoder().encodeToString(data.getBytes());
+        tokenRepository.findByToken(oldToken.get())
+                .map(newToken -> {
+                    newToken.setToken(token);
+                    return newToken;
+                })
+                .orElseThrow(() -> new TokenException("Token is not found"));
+        return user;
     }
 
     @Override

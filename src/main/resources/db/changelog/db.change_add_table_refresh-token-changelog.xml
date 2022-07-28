@@ -29,7 +29,7 @@
             <column name="name" value="Mykhailo Horoshko"/>
             <column name="email" value="mykhailo.horoshko@eleks.com"/>
             <!--password = Aa123456-->
-            <column name="password" value="	$2a$10$5/piKi3X/PWA3LZwfs8k0.9jwxsCrZuqhEt4YdlGF7ekj0BCj0t1a"/>
+            <column name="password" value="$2a$10$.KDYlJq86GCJ6X7gHLf8LeTLny8tauF/Un1eTArjsPgY0BV6acWoq"/>
             <column name="is_activated" value="true"/>
         </insert>
     </changeSet>
