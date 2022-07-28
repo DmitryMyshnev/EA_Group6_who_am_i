@@ -36,7 +36,7 @@ public class LobbyServiceImpl implements LobbyService {
     @Override
     @Transactional
     public Lobby createLobby(CreateLobbyCommand command) {
-        return themeRepository.findByName(command.getTheme())
+        return themeRepository.findByNameIgnoreCase(command.getTheme())
                 .map(theme -> userRepository.findById(command.getUserId())
                         .map(user -> {
                             var lobby = Lobby.builder()

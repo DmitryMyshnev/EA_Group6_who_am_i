@@ -40,7 +40,7 @@ class LobbyServiceImplTest {
 
     @Test
     void givenNotExistTheme_createLobby_shouldByThroeException() {
-        when(themeRepository.findByName(anyString())).thenReturn(Optional.empty());
+        when(themeRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.empty());
         var createLobbyCommand = CreateLobbyCommand.builder()
                 .theme("test")
                 .build();
@@ -54,7 +54,7 @@ class LobbyServiceImplTest {
                 .isPrivate(true)
                 .password(null)
                 .build();
-        when(themeRepository.findByName(anyString())).thenReturn(Optional.of(new Theme()));
+        when(themeRepository.findByNameIgnoreCase(anyString())).thenReturn(Optional.of(new Theme()));
         when(userRepository.findById(any(Long.class))).thenReturn(Optional.of(new User()));
 
         Assertions.assertThrows(CreateLobbyException.class, () -> lobbyService.createLobby(createLobbyCommand));
