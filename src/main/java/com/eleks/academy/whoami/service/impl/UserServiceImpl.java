@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
         tokenRepository.findByToken(token)
                 .ifPresent(tk -> tk.setCreateTime(Instant.now()));
 
-        var urlToken = generateUrl("/users/access?token=", token);
+        var urlToken = generateUrl("/new-password?token=", token);
         String text = "Dear Player, we`ve got a request to reset your WAI password.\n" +
                 urlToken + "\n" +
                 "If you ignore this message, your password will not be changed";
