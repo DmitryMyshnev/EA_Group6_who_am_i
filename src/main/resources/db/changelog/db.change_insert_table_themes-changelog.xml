@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="10" author="Dmytro Mishnev">
+        <insert tableName="themes">
+            <column name="id" value="1"/>
+            <column name="name" value="ACTORS"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="2"/>
+            <column name="name" value="SINGERS"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="3"/>
+            <column name="name" value="ASTRONAUTS"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="4"/>
+            <column name="name" value="SCIENTISTS"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="5"/>
+            <column name="name" value="POLITICIANS"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="6"/>
+            <column name="name" value="HISTORICAL FIGURES"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="7"/>
+            <column name="name" value="SUPER HEROES"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="8"/>
+            <column name="name" value="MOVIE CHARACTER"/>
+        </insert>
+        <insert tableName="themes">
+            <column name="id" value="9"/>
+            <column name="name" value="CARTOON CHARACTER"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
