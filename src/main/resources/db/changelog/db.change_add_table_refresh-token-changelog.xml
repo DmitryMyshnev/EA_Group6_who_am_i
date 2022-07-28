@@ -21,10 +21,10 @@
 
         <insert tableName="users">
             <column name="id" value="1"/>
-            <column name="name" value="Admin"/>
-            <column name="email" value="user@com"/>
-            <!--password = 12345678-->
-            <column name="password" value="$2a$10$IUsLbzWq55njBJQpEtMK9ucNH.FjjVyeCWZYMEzZ9ToZ8YLTpE8p."/>
+            <column name="name" value="Mykhailo Horoshko"/>
+            <column name="email" value="mykhailo.horoshko@eleks.com"/>
+            <!--password = Aa123456-->
+            <column name="password" value="	$2a$10$5/piKi3X/PWA3LZwfs8k0.9jwxsCrZuqhEt4YdlGF7ekj0BCj0t1a"/>
             <column name="is_activated" value="true"/>
         </insert>
     </changeSet>
