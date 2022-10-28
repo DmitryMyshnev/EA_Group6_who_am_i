@@ -1,12 +1,7 @@
 package com.eleks.academy.whoami.service.impl;
 
 import com.eleks.academy.whoami.db.dto.CreateUserCommand;
-import com.eleks.academy.whoami.db.exception.ChangePasswordException;
-import com.eleks.academy.whoami.db.exception.CreateUserException;
-import com.eleks.academy.whoami.db.exception.NotFoundUserException;
-import com.eleks.academy.whoami.db.exception.TokenException;
-import com.eleks.academy.whoami.db.exception.UserNotFoundException;
-
+import com.eleks.academy.whoami.db.exception.*;
 import com.eleks.academy.whoami.db.model.RegistrationToken;
 import com.eleks.academy.whoami.db.model.User;
 import com.eleks.academy.whoami.model.request.ChangePasswordCredential;
