@@ -14,7 +14,7 @@ spring:
         on-profile: dev
 
   datasource:
-    url: jdbc:h2:file:./who_am_i
+    url: jdbc:h2:mem./db
     username: admin
     password:
     driverClassName: org.h2.Driver
@@ -48,7 +48,11 @@ spring:
              enable: true
           connectiontimeout: 5000
           timeout: 5000
-
+  cloud:
+    gcp:
+      project-id: asset-management-system-367118
+      credentials:
+        location: file:credentials/service-account.json
 jwt:
   token-secret: ${JWT_SECRET_KEY}
   access-token:
@@ -56,5 +60,4 @@ jwt:
   refresh-token:
           expiration: 86400000
 
-confirm-url: ${CONFIRM_URL}
-
+confirm-url: https://

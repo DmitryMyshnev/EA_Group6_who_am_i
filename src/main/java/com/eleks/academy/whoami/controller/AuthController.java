@@ -4,6 +4,8 @@ import com.eleks.academy.whoami.db.dto.CredentialRequest;
 import com.eleks.academy.whoami.db.dto.JwtResponse;
 import com.eleks.academy.whoami.db.dto.RefreshTokenCommandDto;
 import com.eleks.academy.whoami.db.dto.RefreshTokenResponse;
+import com.eleks.academy.whoami.google.pubsub.PublishConfig;
+import com.eleks.academy.whoami.model.request.Message;
 import com.eleks.academy.whoami.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +22,15 @@ import javax.validation.Valid;
 @RequestMapping("/auth")
 public class AuthController {
     private final AuthService authService;
+    private final PublishConfig.PubSubPersonGateway pubSubPersonGateway;
 
     @Transactional
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> signIn(@RequestBody @Valid CredentialRequest credential) {
-        var jwtResponse = authService.authenticate(credential);
-        return ResponseEntity.ok(jwtResponse);
+       // var jwtResponse = authService.authenticate(credential);
+       // return ResponseEntity.ok(jwtResponse);
+        pubSubPersonGateway.sendMessageToPubSub(new Message("Hello from world"));
+        return ResponseEntity.ok(null);
     }
 
     @Transactional
